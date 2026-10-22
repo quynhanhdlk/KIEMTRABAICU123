@@ -8,20 +8,19 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Ẩn giao diện mặc định của Streamlit
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .block-container { padding: 0rem; margin: 0rem; }
-    iframe { border: none !important; width: 100% !important; min-height: 100vh !important; }
+    iframe { border: none !important; width: 100% !important; height: 100vh !important; }
     </style>
 """, unsafe_allow_html=True)
 
 try:
     with open("index.html", "r", encoding="utf-8") as f:
         html_code = f.read()
-    components.html(html_code, height=960, scrolling=True)
+    components.html(html_code, height=950, scrolling=True)
 except FileNotFoundError:
-    st.error("Không tìm thấy tệp index.html trong cùng thư mục!")
+    st.error("Không tìm thấy tệp index.html!")
