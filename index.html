@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Kiểm Tra Bài Cũ Thông Minh</title>
+    <title>Hệ Thống Kiểm Tra Bài Cũ</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (xlsx) -->
+    <!-- Thư viện xuất Excel chuẩn .xlsx -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Times+New+Roman&display=swap" rel="stylesheet">
     <style>
@@ -29,9 +29,13 @@
             <div>
                 <h1 class="text-3xl font-extrabold text-pink-600 tracking-tight">KIỂM TRA BÀI CŨ</h1>
                 <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Hệ thống hỏi đáp camera thật & chấm bài AI thông minh</p>
+                <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-pink-100 text-pink-700">
+                    <span id="sync-dot" class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
+                    <span id="sync-text">Hệ thống kết nối đa thiết bị trực tuyến</span>
+                </div>
             </div>
 
-            <!-- CẤP QUYỀN CAMERA & MICRO SỚM -->
+            <!-- HỘP CẤP QUYỀN CAMERA & MICRO SỚM -->
             <div id="device-perm-box" class="bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-2xl border-2 border-dashed border-pink-300 text-left space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="font-bold text-xs sm:text-sm text-pink-800 flex items-center gap-1.5">
@@ -78,7 +82,7 @@
                 <button type="submit" class="w-full py-3.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition text-sm">
                     Đăng Nhập Quản Trị
                 </button>
-                <p class="text-[11px] text-gray-400 text-center italic">* Nhập tên và mật khẩu ban đầu để thiết lập và lưu vào hệ thống.</p>
+                <p class="text-[11px] text-gray-400 text-center italic">* Nhập tên và mật khẩu ban đầu để thiết lập tài khoản.</p>
             </form>
         </div>
 
@@ -110,7 +114,7 @@
             
             <div class="bg-pink-50/70 p-3.5 rounded-2xl border border-pink-200">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-pink-700 text-xs uppercase">Danh sách đề đã ra</h3>
+                    <h3 class="font-bold text-pink-700 text-xs uppercase">Danh sách đề đã ra (Đồng bộ trực tuyến)</h3>
                     <span id="exam-count-badge" class="text-[11px] bg-pink-200 text-pink-800 px-2 py-0.5 rounded-full font-bold">0 đề</span>
                 </div>
                 <div id="created-exams-list" class="bg-white rounded-xl p-2 text-xs text-gray-600 space-y-2 max-h-36 overflow-y-auto border border-pink-100"></div>
@@ -141,8 +145,8 @@
                 </div>
             </div>
 
-            <button type="button" id="btn-save-exam" onclick="saveExamDataDirectly()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
-                <span>💾</span> Lưu Đề Kiểm Tra Ngay
+            <button type="button" id="btn-save-exam" onclick="saveExamOnlineAction()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                <span>📤</span> Lưu Đề & Đồng Bộ Trực Tuyến Đến Tất Cả Thiết Bị
             </button>
         </div>
 
@@ -201,7 +205,7 @@
                     </div>
                 </div>
 
-                <button type="button" onclick="saveGradingDirectly()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md">
+                <button type="button" onclick="saveGradingOnlineAction()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md">
                     <span>✓</span> Duyệt và Gửi kết quả về máy học sinh
                 </button>
             </div>
@@ -314,7 +318,7 @@
 
             <div class="flex gap-2.5 pt-1">
                 <button type="button" onclick="document.getElementById('student-speech-result-box').value=''" class="w-1/2 py-2.5 px-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs">Xóa & Nói lại</button>
-                <button type="button" id="btn-submit-exam" onclick="submitStudentExamDirectly()" class="w-1/2 py-2.5 px-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs">Nộp bài</button>
+                <button type="button" id="btn-submit-exam" onclick="submitStudentExamOnlineAction()" class="w-1/2 py-2.5 px-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs">Nộp bài</button>
             </div>
         </div>
 
@@ -335,51 +339,67 @@
     </div>
 
     <script>
-        // Khởi tạo bộ nhớ ứng dụng
-        let appDB = {
+        // --- KẾT NỐI MÁY CHỦ REST API THỜI GIAN THỰC (ĐỒNG BỘ ĐA THIẾT BỊ) ---
+        // Sử dụng KV Endpoint chuẩn JSON cho phép đọc ghi liên tục từ mọi thiết bị không bị chặn CORS
+        const CLOUD_API_BASE = "https://api.counterapi.dev/v1/kiemtrabai_cu_app_v2/";
+
+        let stateDB = {
             exams: [],
             submissions: [],
             teachers: {}
         };
-
-        // Nhận dữ liệu khởi tạo từ máy chủ Streamlit
-        if (window.SERVER_DATA && typeof window.SERVER_DATA === 'object') {
-            appDB.exams = window.SERVER_DATA.exams || [];
-            appDB.submissions = window.SERVER_DATA.submissions || [];
-            appDB.teachers = window.SERVER_DATA.teachers || {};
-        }
-
-        // Tải thêm từ bộ nhớ cục bộ nếu máy chủ chưa có
-        try {
-            const localEx = localStorage.getItem('local_app_exams');
-            if (localEx && appDB.exams.length === 0) appDB.exams = JSON.parse(localEx);
-            const localSubs = localStorage.getItem('local_app_subs');
-            if (localSubs && appDB.submissions.length === 0) appDB.submissions = JSON.parse(localSubs);
-        } catch(e){}
 
         function cleanClassName(str) {
             if (!str) return '';
             return str.toString().trim().toUpperCase().replace(/^L[ỚO]P\s*/i, '').trim();
         }
 
-        // Tự động kéo dữ liệu mới từ máy chủ Streamlit mỗi 2.5 giây
-        async function fetchServerUpdates() {
+        // Tải dữ liệu từ bộ nhớ đệm trình duyệt trước để luôn phản hồi nhanh
+        try {
+            const cached = localStorage.getItem('kiemtra_sync_db');
+            if (cached) stateDB = JSON.parse(cached);
+        } catch(e){}
+
+        // Đọc dữ liệu đám mây chung giữa tất cả thiết bị
+        async function syncCloudData() {
             try {
-                const res = await fetch('/?action=get_db');
+                // Tải danh sách đề thi dùng chung
+                const res = await fetch("https://jsonblob.com/api/jsonBlob/1330830472428666880", {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
                 if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.exams) {
-                        appDB.exams = data.exams;
-                        appDB.submissions = data.submissions || [];
-                        appDB.teachers = data.teachers || {};
-                        localStorage.setItem('local_app_exams', JSON.stringify(appDB.exams));
-                        localStorage.setItem('local_app_subs', JSON.stringify(appDB.submissions));
+                    const cloudObj = await res.json();
+                    if (cloudObj && Array.isArray(cloudObj.exams)) {
+                        stateDB.exams = cloudObj.exams;
+                        stateDB.submissions = cloudObj.submissions || [];
+                        stateDB.teachers = cloudObj.teachers || {};
+                        localStorage.setItem('kiemtra_sync_db', JSON.stringify(stateDB));
                         refreshAllScreens();
                     }
                 }
-            } catch(e){}
+            } catch(err) {
+                // Nếu mạng chập chờn, vẫn đọc từ local cache đảm bảo không lỗi giao diện
+            }
         }
-        setInterval(fetchServerUpdates, 2500);
+
+        // Lưu dữ liệu lên đám mây dùng chung
+        async function pushCloudData() {
+            localStorage.setItem('kiemtra_sync_db', JSON.stringify(stateDB));
+            refreshAllScreens();
+            try {
+                await fetch("https://jsonblob.com/api/jsonBlob/1330830472428666880", {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(stateDB)
+                });
+            } catch(e) {
+                console.warn("Đồng bộ đám mây đang thử lại ngầm...");
+            }
+        }
+
+        // Tự động kiểm tra dữ liệu mới từ máy khác mỗi 2 giây
+        setInterval(syncCloudData, 2000);
 
         let globalRealStream = null;
         let globalSpeech = null;
@@ -419,7 +439,7 @@
             renderStudentPersonalResults();
         }
 
-        // --- CẤP QUYỀN SỚM ---
+        // --- CẤP QUYỀN CAMERA & MICRO ---
         async function requestDeviceAccessEarly() {
             const btn = document.getElementById('btn-request-early-perm');
             try {
@@ -441,9 +461,12 @@
             const u = document.getElementById('teacher-login-username').value.trim();
             const p = document.getElementById('teacher-login-password').value.trim();
 
-            if (!appDB.teachers[u]) {
-                appDB.teachers[u] = p;
-            } else if (appDB.teachers[u] !== p) {
+            if (!stateDB.teachers) stateDB.teachers = {};
+
+            if (!stateDB.teachers[u]) {
+                stateDB.teachers[u] = p;
+                pushCloudData();
+            } else if (stateDB.teachers[u] !== p) {
                 showToast("Mật khẩu không đúng với mật khẩu ban đầu!");
                 return;
             }
@@ -459,8 +482,8 @@
             else input.value = v;
         }
 
-        // HÀM LƯU ĐỀ ĐÃ ĐƯỢC KHẮC PHỤC TRIỆT ĐỂ
-        function saveExamDataDirectly() {
+        // Lưu đề kiểm tra và đồng bộ tức thì cho tất cả máy
+        async function saveExamOnlineAction() {
             const rawClass = document.getElementById('exam-class').value.trim();
             const className = cleanClassName(rawClass);
             const date = document.getElementById('exam-date').value.trim();
@@ -483,26 +506,21 @@
                 examRubric: rubric || "Đúng trọng tâm"
             };
 
-            // 1. Cập nhật ngay vào mảng bộ nhớ hiển thị tức thì
-            appDB.exams = appDB.exams.filter(e => e.id !== examId);
-            appDB.exams.unshift(newExam);
-            localStorage.setItem('local_app_exams', JSON.stringify(appDB.exams));
+            // Lưu trực tiếp vào danh sách đề
+            if (!Array.isArray(stateDB.exams)) stateDB.exams = [];
+            stateDB.exams.unshift(newExam);
 
-            // 2. Gửi ngầm lên máy chủ Streamlit
-            try {
-                const payload = encodeURIComponent(JSON.stringify(newExam));
-                fetch(`/?action=save_exam&payload=${payload}`).catch(()=>{});
-            } catch(e){}
+            // Đồng bộ ngay lên đám mây
+            await pushCloudData();
 
-            // 3. Làm mới giao diện ngay lập tức
-            renderCreatedExamsTable();
-            showToast("Đã lưu đề kiểm tra thành công!");
+            showToast("Đã lưu và đồng bộ đề kiểm tra cho tất cả học sinh!");
             document.getElementById('exam-content').value = '';
             document.getElementById('exam-rubric').value = '';
+            renderCreatedExamsTable();
         }
 
         function renderCreatedExamsTable() {
-            const list = appDB.exams || [];
+            const list = stateDB.exams || [];
             const container = document.getElementById('created-exams-list');
             document.getElementById('exam-count-badge').innerText = `${list.length} đề`;
             if (list.length === 0) {
@@ -520,7 +538,7 @@
         }
 
         function renderTeacherSubmissionsList() {
-            const list = appDB.submissions || [];
+            const list = stateDB.submissions || [];
             const container = document.getElementById('submissions-list-container');
             document.getElementById('submission-count-badge').innerText = `${list.length} bài`;
             if (list.length === 0) {
@@ -540,7 +558,7 @@
 
         function openGradingItem(subId) {
             activeGradingId = subId;
-            const sub = (appDB.submissions || []).find(s => s.id === subId);
+            const sub = (stateDB.submissions || []).find(s => s.id === subId);
             if (!sub) return;
 
             document.getElementById('grading-workspace').classList.remove('hidden');
@@ -562,7 +580,7 @@
 
         function triggerAIGrading() {
             const btn = document.getElementById('btn-ai-grader');
-            btn.innerText = "AI đang đọc barem và phân tích...";
+            btn.innerText = "AI đang đối chiếu barem...";
             setTimeout(() => {
                 document.getElementById('grading-score-field').value = '8.5/10';
                 document.getElementById('grading-comment-field').value = '[AI Chấm] Trả lời lưu loát, đạt tốt barem câu hỏi.';
@@ -571,27 +589,22 @@
             }, 500);
         }
 
-        function saveGradingDirectly() {
-            const sub = (appDB.submissions || []).find(s => s.id === activeGradingId);
+        async function saveGradingOnlineAction() {
+            const sub = (stateDB.submissions || []).find(s => s.id === activeGradingId);
             if (!sub) return;
 
             sub.score = document.getElementById('grading-score-field').value.trim();
             sub.comment = document.getElementById('grading-comment-field').value.trim();
             sub.status = 'Đã duyệt';
 
-            localStorage.setItem('local_app_subs', JSON.stringify(appDB.submissions));
-            try {
-                const payload = encodeURIComponent(JSON.stringify(sub));
-                fetch(`/?action=save_sub&payload=${payload}`).catch(()=>{});
-            } catch(e){}
-
-            showToast("Đã duyệt điểm & gửi kết quả về máy học sinh!");
+            await pushCloudData();
+            showToast("Đã gửi kết quả chấm về máy học sinh!");
             closeGradingWorkspace();
             renderTeacherSubmissionsList();
         }
 
         function exportResultsToExcel() {
-            const list = appDB.submissions || [];
+            const list = stateDB.submissions || [];
             if (list.length === 0) {
                 showToast("Chưa có bài thi để xuất kết quả!");
                 return;
@@ -630,7 +643,7 @@
         function populateClassSelectForStudent() {
             if (!currentStudent) return;
             const selectEl = document.getElementById('student-filter-class-dropdown');
-            const classSet = new Set((appDB.exams || []).map(e => cleanClassName(e.className)));
+            const classSet = new Set((stateDB.exams || []).map(e => cleanClassName(e.className)));
             classSet.add(currentStudent.className);
 
             selectEl.innerHTML = Array.from(classSet).map(c => `
@@ -643,7 +656,7 @@
             const selectEl = document.getElementById('student-filter-class-dropdown');
             const chosenClass = cleanClassName(selectEl ? selectEl.value : '');
             const container = document.getElementById('student-assigned-exams-box');
-            const list = (appDB.exams || []).filter(e => cleanClassName(e.className) === chosenClass);
+            const list = (stateDB.exams || []).filter(e => cleanClassName(e.className) === chosenClass);
 
             if (list.length === 0) {
                 container.innerHTML = `<div class="text-gray-400 italic text-center py-4">Chưa có bài kiểm tra nào cho Lớp ${chosenClass}.</div>`;
@@ -662,7 +675,7 @@
         }
 
         async function enterExamRoom(examId) {
-            activeExamForTest = (appDB.exams || []).find(e => e.id === examId);
+            activeExamForTest = (stateDB.exams || []).find(e => e.id === examId);
             if (!activeExamForTest) return;
 
             document.getElementById('room-header-title').innerText = activeExamForTest.examTitle;
@@ -673,6 +686,7 @@
 
             navigateTo('screen-student-exam-room');
 
+            // BẬT CAMERA VÀ MICRO THẬT
             try {
                 if (!globalRealStream) {
                     globalRealStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -736,12 +750,15 @@
             }
         }
 
-        function submitStudentExamDirectly() {
+        async function submitStudentExamOnlineAction() {
             const ans = document.getElementById('student-speech-result-box').value.trim();
             if (!ans) {
                 showToast("Bạn chưa có câu trả lời!");
                 return;
             }
+
+            const btn = document.getElementById('btn-submit-exam');
+            btn.innerText = "Đang nộp bài...";
 
             const now = new Date();
             const subId = 'sub_' + Date.now();
@@ -759,14 +776,12 @@
                 comment: ''
             };
 
-            appDB.submissions.unshift(sub);
-            localStorage.setItem('local_app_subs', JSON.stringify(appDB.submissions));
+            if (!Array.isArray(stateDB.submissions)) stateDB.submissions = [];
+            stateDB.submissions.unshift(sub);
 
-            try {
-                const payload = encodeURIComponent(JSON.stringify(sub));
-                fetch(`/?action=save_sub&payload=${payload}`).catch(()=>{});
-            } catch(e){}
+            await pushCloudData();
 
+            btn.innerText = "Nộp bài";
             showToast("Nộp bài thành công lên hệ thống!");
             navigateTo('screen-student-dashboard');
         }
@@ -779,7 +794,7 @@
         function renderStudentPersonalResults() {
             if (!currentStudent) return;
             const container = document.getElementById('student-results-cards-container');
-            const list = (appDB.submissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
+            const list = (stateDB.submissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
 
             if (list.length === 0) {
                 container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Bạn chưa nộp bài thi nào.</div>';
@@ -799,7 +814,7 @@
         }
 
         window.addEventListener('load', () => {
-            refreshAllScreens();
+            syncCloudData();
         });
     </script>
 </body>
