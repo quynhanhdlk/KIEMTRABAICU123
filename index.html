@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Kiểm Tra Bài Cũ Thông Minh</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (xlsx) -->
+    <!-- SheetJS (xlsx) để xuất file Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PubNub SDK: Kênh truyền thông tin thời gian thực đa thiết bị không bị chặn CORS -->
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.4.5.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Times+New+Roman&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -31,7 +33,7 @@
                 <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Hệ thống hỏi đáp camera thật & chấm bài AI thông minh</p>
                 <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span id="sync-status-badge">Đồng bộ máy chủ Streamlit sẵn sàng</span>
+                    <span id="network-status-text">Kênh truyền đa thiết bị: Trực tuyến</span>
                 </div>
             </div>
 
@@ -105,7 +107,7 @@
             </div>
         </div>
 
-        <!-- MÀN HÌNH RA ĐỀ CỦA GIÁO VIÊN -->
+        <!-- MÀN HÌNH RA ĐỀ (LƯU TỨC THÌ & TRUYỀN PHÁT NGAY) -->
         <div id="screen-teacher-create-exam" class="hidden space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-3">
                 <h2 class="text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Ra Đề Kiểm Tra Bài Cũ</h2>
@@ -145,8 +147,8 @@
                 </div>
             </div>
 
-            <button type="button" id="btn-save-exam" onclick="saveExamAction()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
-                <span>💾</span> Lưu Đề & Phát Đến Tất Cả Thiết Bị
+            <button type="button" id="btn-save-exam" onclick="saveAndBroadcastExam()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                <span>📡</span> Lưu Đề & Truyền Trực Tiếp Đến Máy Học Sinh
             </button>
         </div>
 
@@ -205,7 +207,7 @@
                     </div>
                 </div>
 
-                <button type="button" onclick="saveGradingResultAction()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md">
+                <button type="button" onclick="saveAndBroadcastGrading()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md">
                     <span>✓</span> Duyệt và Gửi kết quả về máy học sinh
                 </button>
             </div>
@@ -332,57 +334,100 @@
 
     </div>
 
-    <!-- TOAST -->
+    <!-- TOAST THÔNG BÁO -->
     <div id="app-toast" class="fixed bottom-5 right-5 bg-gray-900/95 text-white px-4 py-2.5 rounded-2xl shadow-xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 text-xs font-semibold flex items-center gap-2 max-w-sm pointer-events-none">
         <span id="toast-text">Thông báo</span>
     </div>
 
     <script>
-        // --- BỘ NHỚ VÀ HỆ THỐNG ĐỒNG BỘ NỘI BỘ ---
-        let globalStore = {
+        // --- 1. HỆ THỐNG TRUYỀN TIN REALTIME THỜI GIAN THỰC ĐA THIẾT BỊ ---
+        // Sử dụng PubNub demo keys công khai chạy được từ bất kỳ đâu, không lo CORS hay phân quyền
+        const pubnub = new PubNub({
+            publishKey: "demo",
+            subscribeKey: "demo",
+            userId: "user_" + Math.random().toString(36).substring(2, 9),
+            ssl: true
+        });
+
+        const REALTIME_CHANNEL = "kiem_tra_bai_cu_channel_prod_2026";
+
+        let localStore = {
             exams: [],
             submissions: [],
             teachers: {}
         };
 
-        // 1. Nạp dữ liệu ban đầu từ Python Streamlit truyền sang
-        if (window.__SERVER_BOOTSTRAP__ && typeof window.__SERVER_BOOTSTRAP__ === 'object') {
-            globalStore.exams = window.__SERVER_BOOTSTRAP__.exams || [];
-            globalStore.submissions = window.__SERVER_BOOTSTRAP__.submissions || [];
-            globalStore.teachers = window.__SERVER_BOOTSTRAP__.teachers || {};
-        }
-
-        // 2. Dự phòng thêm với bộ nhớ trình duyệt
+        // Đọc dữ liệu đã lưu trong máy
         try {
-            const locEx = localStorage.getItem('local_stream_exams');
-            if (locEx && globalStore.exams.length === 0) globalStore.exams = JSON.parse(locEx);
-            const locSubs = localStorage.getItem('local_stream_subs');
-            if (locSubs && globalStore.submissions.length === 0) globalStore.submissions = JSON.parse(locSubs);
-        } catch(e){}
+            const e = localStorage.getItem('kiemtra_exams');
+            if (e) localStore.exams = JSON.parse(e);
+            const s = localStorage.getItem('kiemtra_subs');
+            if (s) localStore.submissions = JSON.parse(s);
+            const t = localStorage.getItem('kiemtra_teachers');
+            if (t) localStore.teachers = JSON.parse(t);
+        } catch(err){}
+
+        // Đăng ký kênh truyền tin nhắn giữa các máy
+        pubnub.subscribe({ channels: [REALTIME_CHANNEL] });
+
+        pubnub.addListener({
+            message: function(event) {
+                const msg = event.message;
+                if (!msg || !msg.type) return;
+
+                if (msg.type === "NEW_EXAM") {
+                    const exam = msg.payload;
+                    localStore.exams = [exam, ...localStore.exams.filter(x => x.id !== exam.id)];
+                    localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
+                    refreshAllScreens();
+                } else if (msg.type === "NEW_SUBMISSION") {
+                    const sub = msg.payload;
+                    localStore.submissions = [sub, ...localStore.submissions.filter(x => x.id !== sub.id)];
+                    localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+                    refreshAllScreens();
+                } else if (msg.type === "UPDATE_GRADE") {
+                    const sub = msg.payload;
+                    const idx = localStore.submissions.findIndex(x => x.id === sub.id);
+                    if (idx !== -1) {
+                        localStore.submissions[idx] = sub;
+                        localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+                        refreshAllScreens();
+                    }
+                } else if (msg.type === "REQUEST_SYNC") {
+                    // Nếu máy giáo viên đang có đề, tự động gửi lại cho máy học sinh vừa vào
+                    if (localStore.exams.length > 0) {
+                        pubnub.publish({
+                            channel: REALTIME_CHANNEL,
+                            message: { type: "SYNC_EXAMS_RESPONSE", payload: localStore.exams }
+                        });
+                    }
+                } else if (msg.type === "SYNC_EXAMS_RESPONSE") {
+                    const incomingExams = msg.payload;
+                    if (Array.isArray(incomingExams)) {
+                        const map = new Map();
+                        [...incomingExams, ...localStore.exams].forEach(item => {
+                            if (item && item.id) map.set(item.id, item);
+                        });
+                        localStore.exams = Array.from(map.values());
+                        localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
+                        refreshAllScreens();
+                    }
+                }
+            }
+        });
+
+        // Khi vừa mở web, gửi tín hiệu xin dữ liệu từ máy giáo viên
+        setTimeout(() => {
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "REQUEST_SYNC" }
+            });
+        }, 1000);
 
         function cleanClassName(str) {
             if (!str) return '';
             return str.toString().trim().toUpperCase().replace(/^L[ỚO]P\s*/i, '').trim();
         }
-
-        // Tự động kéo dữ liệu mới từ máy chủ Streamlit mỗi 2 giây
-        async function fetchServerStore() {
-            try {
-                const res = await fetch('/?api=fetch_all');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && Array.isArray(data.exams)) {
-                        globalStore.exams = data.exams;
-                        globalStore.submissions = data.submissions || [];
-                        globalStore.teachers = data.teachers || {};
-                        localStorage.setItem('local_stream_exams', JSON.stringify(globalStore.exams));
-                        localStorage.setItem('local_stream_subs', JSON.stringify(globalStore.submissions));
-                        refreshAllScreens();
-                    }
-                }
-            } catch(e){}
-        }
-        setInterval(fetchServerStore, 2000);
 
         let globalRealStream = null;
         let globalSpeech = null;
@@ -444,9 +489,10 @@
             const u = document.getElementById('teacher-login-username').value.trim();
             const p = document.getElementById('teacher-login-password').value.trim();
 
-            if (!globalStore.teachers[u]) {
-                globalStore.teachers[u] = p;
-            } else if (globalStore.teachers[u] !== p) {
+            if (!localStore.teachers[u]) {
+                localStore.teachers[u] = p;
+                localStorage.setItem('kiemtra_teachers', JSON.stringify(localStore.teachers));
+            } else if (localStore.teachers[u] !== p) {
                 showToast("Mật khẩu không đúng với mật khẩu ban đầu!");
                 return;
             }
@@ -462,8 +508,8 @@
             else input.value = v;
         }
 
-        // HÀM LƯU ĐỀ ĐÃ ĐƯỢC CÔ LẬP TRIỆT ĐỂ KHỎI MỌI LỖI MẠNG
-        function saveExamAction() {
+        // HÀM LƯU ĐỀ THI VÀ PHÁT SÓNG TRỰC TIẾP TỚI CÁC MÁY HỌC SINH
+        function saveAndBroadcastExam() {
             const rawClass = document.getElementById('exam-class').value.trim();
             const className = cleanClassName(rawClass);
             const date = document.getElementById('exam-date').value.trim();
@@ -486,25 +532,29 @@
                 examRubric: rubric || "Đúng trọng tâm"
             };
 
-            // 1. Cập nhật ngay vào danh sách hiển thị của giáo viên
-            globalStore.exams = [newExam, ...globalStore.exams.filter(e => e.id !== examId)];
-            localStorage.setItem('local_stream_exams', JSON.stringify(globalStore.exams));
+            // 1. Cập nhật và lưu vào máy giáo viên ngay lập tức (không chờ mạng)
+            localStore.exams = [newExam, ...localStore.exams.filter(e => e.id !== examId)];
+            localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
             renderCreatedExamsTable();
 
-            // 2. Xóa sạch form
+            // 2. Làm sạch form nhập
             document.getElementById('exam-content').value = '';
             document.getElementById('exam-rubric').value = '';
-            showToast("Đã lưu đề kiểm tra thành công!");
+            showToast("Đã lưu đề! Đang truyền đến máy học sinh...");
 
-            // 3. Đồng bộ lên máy chủ Streamlit cho học sinh các máy khác cùng thấy
-            try {
-                const encoded = encodeURIComponent(JSON.stringify(newExam));
-                fetch(`/?api=save_exam&data=${encoded}`).catch(()=>{});
-            } catch(e){}
+            // 3. Phát trực tiếp qua kênh Realtime đến mọi thiết bị học sinh
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "NEW_EXAM", payload: newExam }
+            }, function(status, response) {
+                if (!status.error) {
+                    showToast("Đã phát sóng đề thành công đến máy học sinh!");
+                }
+            });
         }
 
         function renderCreatedExamsTable() {
-            const list = globalStore.exams || [];
+            const list = localStore.exams || [];
             const container = document.getElementById('created-exams-list');
             document.getElementById('exam-count-badge').innerText = `${list.length} đề`;
             if (list.length === 0) {
@@ -522,7 +572,7 @@
         }
 
         function renderTeacherSubmissionsList() {
-            const list = globalStore.submissions || [];
+            const list = localStore.submissions || [];
             const container = document.getElementById('submissions-list-container');
             document.getElementById('submission-count-badge').innerText = `${list.length} bài`;
             if (list.length === 0) {
@@ -542,7 +592,7 @@
 
         function openGradingItem(subId) {
             activeGradingId = subId;
-            const sub = (globalStore.submissions || []).find(s => s.id === subId);
+            const sub = localStore.submissions.find(s => s.id === subId);
             if (!sub) return;
 
             document.getElementById('grading-workspace').classList.remove('hidden');
@@ -564,7 +614,7 @@
 
         function triggerAIGrading() {
             const btn = document.getElementById('btn-ai-grader');
-            btn.innerText = "AI đang đọc barem và chấm bài...";
+            btn.innerText = "AI đang đối chiếu barem...";
             setTimeout(() => {
                 document.getElementById('grading-score-field').value = '8.5/10';
                 document.getElementById('grading-comment-field').value = '[AI Chấm] Trả lời lưu loát, đạt tốt barem câu hỏi.';
@@ -573,19 +623,21 @@
             }, 500);
         }
 
-        function saveGradingResultAction() {
-            const sub = (globalStore.submissions || []).find(s => s.id === activeGradingId);
+        function saveAndBroadcastGrading() {
+            const sub = localStore.submissions.find(s => s.id === activeGradingId);
             if (!sub) return;
 
             sub.score = document.getElementById('grading-score-field').value.trim();
             sub.comment = document.getElementById('grading-comment-field').value.trim();
             sub.status = 'Đã duyệt';
 
-            localStorage.setItem('local_stream_subs', JSON.stringify(globalStore.submissions));
-            try {
-                const encoded = encodeURIComponent(JSON.stringify(sub));
-                fetch(`/?api=save_sub&data=${encoded}`).catch(()=>{});
-            } catch(e){}
+            localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+
+            // Bắn kết quả về máy học sinh
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "UPDATE_GRADE", payload: sub }
+            });
 
             showToast("Đã duyệt điểm & gửi kết quả về máy học sinh!");
             closeGradingWorkspace();
@@ -593,7 +645,7 @@
         }
 
         function exportResultsToExcel() {
-            const list = globalStore.submissions || [];
+            const list = localStore.submissions || [];
             if (list.length === 0) {
                 showToast("Chưa có bài thi để xuất kết quả!");
                 return;
@@ -621,6 +673,13 @@
             currentStudent = { name, className };
             document.getElementById('student-card-name').innerText = `Học sinh: ${name}`;
             document.getElementById('student-card-class').innerText = `Lớp: ${className}`;
+            
+            // Gửi yêu cầu xin lại đề thi từ máy giáo viên ngay khi đăng nhập
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "REQUEST_SYNC" }
+            });
+
             navigateTo('screen-student-dashboard');
         }
 
@@ -632,7 +691,7 @@
         function populateClassSelectForStudent() {
             if (!currentStudent) return;
             const selectEl = document.getElementById('student-filter-class-dropdown');
-            const classSet = new Set((globalStore.exams || []).map(e => cleanClassName(e.className)));
+            const classSet = new Set((localStore.exams || []).map(e => cleanClassName(e.className)));
             classSet.add(currentStudent.className);
 
             selectEl.innerHTML = Array.from(classSet).map(c => `
@@ -645,7 +704,7 @@
             const selectEl = document.getElementById('student-filter-class-dropdown');
             const chosenClass = cleanClassName(selectEl ? selectEl.value : '');
             const container = document.getElementById('student-assigned-exams-box');
-            const list = (globalStore.exams || []).filter(e => cleanClassName(e.className) === chosenClass);
+            const list = (localStore.exams || []).filter(e => cleanClassName(e.className) === chosenClass);
 
             if (list.length === 0) {
                 container.innerHTML = `<div class="text-gray-400 italic text-center py-4">Chưa có bài kiểm tra nào cho Lớp ${chosenClass}.</div>`;
@@ -664,7 +723,7 @@
         }
 
         async function enterExamRoom(examId) {
-            activeExamForTest = (globalStore.exams || []).find(e => e.id === examId);
+            activeExamForTest = (localStore.exams || []).find(e => e.id === examId);
             if (!activeExamForTest) return;
 
             document.getElementById('room-header-title').innerText = activeExamForTest.examTitle;
@@ -675,7 +734,7 @@
 
             navigateTo('screen-student-exam-room');
 
-            // BẬT WEBCAM VÀ MICRO
+            // BẬT WEBCAM VÀ MICRO THẬT
             try {
                 if (!globalRealStream) {
                     globalRealStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -762,13 +821,14 @@
                 comment: ''
             };
 
-            globalStore.submissions = [sub, ...globalStore.submissions.filter(s => s.id !== subId)];
-            localStorage.setItem('local_stream_subs', JSON.stringify(globalStore.submissions));
+            localStore.submissions = [sub, ...localStore.submissions.filter(s => s.id !== subId)];
+            localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
 
-            try {
-                const encoded = encodeURIComponent(JSON.stringify(sub));
-                fetch(`/?api=save_sub&data=${encoded}`).catch(()=>{});
-            } catch(e){}
+            // Bắn bài làm về máy giáo viên
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "NEW_SUBMISSION", payload: sub }
+            });
 
             showToast("Nộp bài thành công lên hệ thống!");
             navigateTo('screen-student-dashboard');
@@ -782,7 +842,7 @@
         function renderStudentPersonalResults() {
             if (!currentStudent) return;
             const container = document.getElementById('student-results-cards-container');
-            const list = (globalStore.submissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
+            const list = (localStore.submissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
 
             if (list.length === 0) {
                 container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Bạn chưa nộp bài thi nào.</div>';
