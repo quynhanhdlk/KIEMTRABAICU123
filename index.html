@@ -6,9 +6,9 @@
     <title>Hệ Thống Kiểm Tra Bài Cũ Thông Minh</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (xlsx) xuất Excel .xlsx -->
+    <!-- SheetJS (xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- PubNub SDK: Kênh Realtime kết nối đa thiết bị -->
+    <!-- PubNub SDK: Đồng bộ đa thiết bị thời gian thực -->
     <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.4.5.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Times+New+Roman&display=swap" rel="stylesheet">
     <style>
@@ -16,6 +16,17 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #fdf2f8; }
         ::-webkit-scrollbar-thumb { background: #f472b6; border-radius: 9999px; }
+        /* Khóa cứng chiều cao video trên iOS/Android để không bao giờ bị bung tràn màn hình */
+        .camera-viewport {
+            height: 180px !important;
+            max-height: 180px !important;
+        }
+        @media (min-width: 640px) {
+            .camera-viewport {
+                height: 220px !important;
+                max-height: 220px !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200 min-h-screen flex items-center justify-center p-3 sm:p-5 select-none">
@@ -33,7 +44,7 @@
                 <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Hỏi đáp trực tiếp bằng Camera & Giọng nói</p>
                 <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span>Đồng bộ đa thiết bị trực tuyến</span>
+                    <span>Hệ thống trực tuyến đa thiết bị</span>
                 </div>
             </div>
 
@@ -167,7 +178,7 @@
                 <div id="submissions-list-container" class="bg-white rounded-xl p-2 text-xs space-y-2 max-h-36 overflow-y-auto border border-pink-100"></div>
             </div>
 
-            <!-- Khung chi tiết chấm -->
+            <!-- Khung chi tiết chấm bài -->
             <div id="grading-workspace" class="hidden bg-gray-50/90 p-3 rounded-2xl border border-gray-200 space-y-2.5">
                 <div class="flex justify-between items-start">
                     <div>
@@ -282,7 +293,7 @@
             </div>
         </div>
 
-        <!-- PHÒNG THI (ĐÃ TỐI ƯU GỌN GÀNG TRÊN IOS & ANDROID) -->
+        <!-- PHÒNG THI (CAMERA KHÓA NỘI TUYẾN 100% TRÊN IOS VÀ NHẬN DIỆN GIỌNG NÓI CHUẨN) -->
         <div id="screen-student-exam-room" class="hidden space-y-2.5">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <div>
@@ -292,12 +303,12 @@
                 <button type="button" onclick="exitExamRoom()" class="text-red-500 font-bold text-xs px-2.5 py-1 bg-red-50 rounded-lg border border-red-200">Thoát</button>
             </div>
 
-            <!-- Khung hình CAMERA THẬT KHÓA NẰM TRONG TRANG (KHÔNG BUNG TOÀN MÀN HÌNH TRÊN IPHONE) -->
-            <div class="relative bg-black rounded-2xl overflow-hidden shadow-md w-full h-44 sm:h-52 mx-auto flex items-center justify-center border-2 border-pink-200">
-                <video id="webcam-video-element" autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover"></video>
+            <!-- Khung Camera: Khóa tuyệt đối trên iPhone, không thể mở Native QuickTime Player -->
+            <div class="relative bg-black rounded-2xl overflow-hidden shadow-md w-full camera-viewport mx-auto flex items-center justify-center border-2 border-pink-200">
+                <video id="webcam-video-element" autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover pointer-events-none"></video>
                 <canvas id="hidden-snapshot-canvas" class="hidden"></canvas>
                 
-                <div class="absolute top-2 left-2 bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1.5">
+                <div class="absolute top-2 left-2 bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1.5 shadow">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     <span>CAMERA THỰC ĐANG BẬT</span>
                 </div>
@@ -311,14 +322,14 @@
                 <strong class="text-pink-700">Câu hỏi:</strong> <span id="room-exam-question-text">--</span>
             </div>
 
-            <!-- Nút bật Micro tương tác thực trên iOS/Android -->
+            <!-- Nút bật/tắt Micro thu âm -->
             <div>
                 <button type="button" id="btn-toggle-mic" onclick="toggleSpeech()" class="w-full py-2 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
                     <span id="mic-icon">🎙️</span> <span id="mic-btn-text">Bấm vào đây để BẬT MICRO nói</span>
                 </button>
             </div>
 
-            <!-- Ô văn bản tự ghi giọng nói: KHÓA CHỈNH SỬA THỦ CÔNG (READONLY) -->
+            <!-- Ô văn bản nhận diện giọng nói: KHÓA CHỈNH SỬA THỦ CÔNG (READONLY) -->
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <label class="text-[11px] font-bold text-gray-700">Văn bản nhận diện giọng nói (Chỉ đọc):</label>
@@ -473,22 +484,23 @@
             renderStudentPersonalResults();
         }
 
-        // --- CẤP QUYỀN CAMERA & MICRO SỚM ---
+        // --- CẤP QUYỀN CAMERA SỚM ---
         async function requestDeviceAccessEarly() {
             const btn = document.getElementById('btn-request-early-perm');
             try {
+                // CHỈ YÊU CẦU VIDEO (KHÔNG YÊU CẦU AUDIO ĐỂ TRÁNH KHÓA MICRO)
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: "user" },
-                    audio: true
+                    audio: false
                 });
                 globalRealStream = stream;
                 document.getElementById('perm-badge').innerText = "Đã cấp quyền ✓";
                 document.getElementById('perm-badge').className = "text-[10px] bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full";
                 btn.className = "w-full py-2.5 px-4 bg-green-600 text-white font-bold text-xs rounded-xl shadow-md";
-                btn.innerText = "✓ Camera & Micro Đã Sẵn Sàng";
+                btn.innerText = "✓ Camera Đã Sẵn Sàng";
                 showToast("Đã kích hoạt thiết bị thành công!");
             } catch(e) {
-                showToast("Vui lòng cấp quyền Camera và Micro!");
+                showToast("Vui lòng cấp quyền Camera cho trình duyệt!");
             }
         }
 
@@ -735,24 +747,25 @@
 
             navigateTo('screen-student-exam-room');
 
-            // BẬT WEBCAM KHÓA TRONG KHUNG CHO CẢ IOS VÀ ANDROID
+            // BẬT WEBCAM: KHÓA TUYỆT ĐỐI KHÔNG BẬT FULLSCREEN TRÊN IPHONE VÀ KHÔNG CHUỘC KÊNH AUDIO
             try {
                 if (!globalRealStream) {
                     globalRealStream = await navigator.mediaDevices.getUserMedia({
                         video: { facingMode: "user" },
-                        audio: true
+                        audio: false // RẤT QUAN TRỌNG: Để trống Audio cho SpeechRecognition
                     });
                 }
                 const v = document.getElementById('webcam-video-element');
                 v.srcObject = globalRealStream;
-                v.setAttribute('playsinline', '');
-                v.setAttribute('webkit-playsinline', '');
-                v.play();
+                v.setAttribute('playsinline', 'true');
+                v.setAttribute('webkit-playsinline', 'true');
+                v.muted = true;
+                await v.play();
 
-                // Tự động chụp 2 khoảnh khắc vào bài nộp
                 timer1 = setTimeout(() => captureSnap(1), 2500);
                 timer2 = setTimeout(() => captureSnap(2), 6500);
             } catch(e) {
+                console.warn("Lỗi camera:", e);
                 showToast("Không thể mở camera thiết bị!");
             }
         }
@@ -768,7 +781,7 @@
             document.getElementById('snapshot-status-tag').innerText = `📸 Ảnh giám sát: ${currentSnapshots.length}/2`;
         }
 
-        // --- HỆ THỐNG NHẬN DIỆN GIỌNG NÓI CHUẨN IOS & ANDROID ---
+        // --- HỆ THỐNG NHẬN DIỆN GIỌNG NÓI CHUẨN ĐA NỀN TẢNG (IOS & ANDROID) ---
         function toggleSpeech() {
             if (!isMicActive) {
                 startSpeechEngine();
@@ -780,54 +793,71 @@
         function startSpeechEngine() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                showToast("Trình duyệt không hỗ trợ nhận diện giọng nói!");
+                showToast("Trình duyệt không hỗ trợ nhận diện giọng nói! Hãy mở bằng Chrome hoặc Safari.");
                 return;
             }
 
             try {
                 if (globalSpeech) {
-                    globalSpeech.stop();
+                    try { globalSpeech.abort(); } catch(e){}
                 }
+
                 globalSpeech = new SpeechRecognition();
                 globalSpeech.lang = 'vi-VN';
                 globalSpeech.continuous = true;
                 globalSpeech.interimResults = true;
+                globalSpeech.maxAlternatives = 1;
 
                 globalSpeech.onstart = () => {
                     isMicActive = true;
                     updateMicButtonUI();
-                    showToast("Đang lắng nghe giọng nói của bạn...");
+                    showToast("Đang lắng nghe... Hãy bắt đầu nói!");
                 };
 
                 globalSpeech.onresult = (event) => {
-                    let fullText = '';
+                    let transcript = '';
                     for (let i = 0; i < event.results.length; i++) {
-                        fullText += event.results[i][0].transcript;
+                        transcript += event.results[i][0].transcript;
                     }
-                    // Ghi đè vào ô textarea chỉ đọc (không cho sửa tay)
-                    document.getElementById('student-speech-result-box').value = fullText;
+                    const box = document.getElementById('student-speech-result-box');
+                    if (box && transcript.trim() !== '') {
+                        box.value = transcript;
+                    }
                 };
 
                 globalSpeech.onerror = (event) => {
-                    console.warn("Lỗi mic:", event.error);
+                    console.warn("Speech error:", event.error);
+                    if (event.error === 'no-speech') return;
+                    if (event.error === 'not-allowed') {
+                        showToast("Vui lòng cấp quyền Micro cho trình duyệt!");
+                        stopSpeechEngine();
+                    }
                 };
 
                 globalSpeech.onend = () => {
+                    // Tự động kết nối lại nếu micro vẫn đang ở trạng thái bật (đặc trị cho Android/iOS tự ngắt)
                     if (isMicActive) {
-                        try { globalSpeech.start(); } catch(e){}
+                        try {
+                            globalSpeech.start();
+                        } catch(e){}
                     }
                 };
 
                 globalSpeech.start();
             } catch(err) {
-                showToast("Không thể kích hoạt micro!");
+                console.error("Lỗi khởi tạo micro:", err);
+                showToast("Không thể khởi động micro!");
+                isMicActive = false;
+                updateMicButtonUI();
             }
         }
 
         function stopSpeechEngine() {
             isMicActive = false;
             if (globalSpeech) {
-                globalSpeech.stop();
+                try {
+                    globalSpeech.stop();
+                } catch(e){}
             }
             updateMicButtonUI();
             showToast("Đã tắt micro!");
@@ -841,7 +871,7 @@
             if (isMicActive) {
                 btn.className = "w-full py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 animate-pulse";
                 icon.innerText = "🛑";
-                txt.innerText = "ĐANG LẮNG NGHE... (BẤM ĐỂ DỪNG NÓI)";
+                txt.innerText = "ĐANG THU ÂM... (BẤM ĐỂ DỪNG NÓI)";
             } else {
                 btn.className = "w-full py-2 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2";
                 icon.innerText = "🎙️";
@@ -851,7 +881,7 @@
 
         function clearSpeechText() {
             document.getElementById('student-speech-result-box').value = '';
-            showToast("Đã xóa nội dung. Hãy bật micro để nói lại!");
+            showToast("Đã xóa nội dung. Hãy bật micro để trả lời lại!");
         }
 
         function stopHardware() {
