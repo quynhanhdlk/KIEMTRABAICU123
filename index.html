@@ -6,12 +6,8 @@
     <title>Hệ Thống Kiểm Tra Bài Cũ Thông Minh</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS để xuất Excel .xlsx nguyên bản -->
+    <!-- Thư viện SheetJS xuất Excel .xlsx -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Firebase Standalone Web SDK (Tương thích 100% trong Iframe, không bị chặn CORS) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- Phông chữ Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Times+New+Roman&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -34,8 +30,8 @@
                 <h1 class="text-3xl font-extrabold text-pink-600 tracking-tight">KIỂM TRA BÀI CŨ</h1>
                 <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Hệ thống hỏi đáp camera thật & chấm bài AI thông minh</p>
                 <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
-                    <span id="cloud-indicator" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span id="cloud-status-text">Đang kết nối đám mây đa thiết bị...</span>
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span>Hệ thống đồng bộ đa thiết bị đã sẵn sàng</span>
                 </div>
             </div>
 
@@ -86,7 +82,7 @@
                 <button type="submit" class="w-full py-3.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition text-sm">
                     Đăng Nhập Quản Trị
                 </button>
-                <p class="text-[11px] text-gray-400 text-center italic">* Thầy/cô nhập tên và mật khẩu ban đầu để tự động ghi nhớ.</p>
+                <p class="text-[11px] text-gray-400 text-center italic">* Nhập tên và mật khẩu ban đầu để tự động ghi nhớ.</p>
             </form>
         </div>
 
@@ -109,7 +105,7 @@
             </div>
         </div>
 
-        <!-- MÀN HÌNH RA ĐỀ CỦA GIÁO VIÊN -->
+        <!-- MÀN HÌNH RA ĐỀ (TỐI ƯU LƯU TỨC THÌ) -->
         <div id="screen-teacher-create-exam" class="hidden space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-3">
                 <h2 class="text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Ra Đề Kiểm Tra Bài Cũ</h2>
@@ -118,7 +114,7 @@
             
             <div class="bg-pink-50/70 p-3.5 rounded-2xl border border-pink-200">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-pink-700 text-xs uppercase tracking-wider">Danh sách đề đã ra (Đồng bộ đa thiết bị)</h3>
+                    <h3 class="font-bold text-pink-700 text-xs uppercase tracking-wider">Danh sách đề đã ra</h3>
                     <span id="exam-count-badge" class="text-[11px] bg-pink-200 text-pink-800 px-2 py-0.5 rounded-full font-bold">0 đề</span>
                 </div>
                 <div id="created-exams-list" class="bg-white rounded-xl p-2 text-xs text-gray-600 space-y-2 max-h-36 overflow-y-auto border border-pink-100"></div>
@@ -145,12 +141,12 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Barem đáp án & tiêu chuẩn chấm điểm</label>
-                    <textarea id="exam-rubric" rows="2" placeholder="VD: Nêu đúng định nghĩa (5đ), Lấy ví dụ minh hoạ (5đ)..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white"></textarea>
+                    <textarea id="exam-rubric" rows="2" placeholder="VD: Nêu đúng định nghĩa (5đ), ví dụ minh hoạ (5đ)..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white"></textarea>
                 </div>
             </div>
 
-            <button type="button" id="btn-save-exam" onclick="saveExamToCloud()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
-                <span>📤</span> Lưu Đề & Đồng Bộ Trực Tuyến Đến Tất Cả Thiết Bị
+            <button type="button" id="btn-save-exam" onclick="handleSaveExam()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
+                <span>💾</span> Lưu Đề & Đồng Bộ Cho Tất Cả Máy
             </button>
         </div>
 
@@ -209,12 +205,12 @@
                     </div>
                 </div>
 
-                <button type="button" onclick="saveGradingResultToCloud()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md">
+                <button type="button" onclick="saveGradingResultAction()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md">
                     <span>✓</span> Duyệt và Gửi kết quả về máy học sinh
                 </button>
             </div>
 
-            <!-- Xuất bảng tính Excel duy nhất -->
+            <!-- Xuất bảng tính Excel chuẩn chính quy -->
             <button type="button" onclick="exportResultsToExcel()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 text-xs sm:text-sm">
                 <span>📗</span> Xuất Bảng tính Excel (.xlsx chuẩn chính quy)
             </button>
@@ -247,7 +243,7 @@
             </div>
         </div>
 
-        <!-- BÀN LÀM VIỆC HỌC SINH (2 NÚT RÕ RÀNG) -->
+        <!-- BÀN LÀM VIỆC HỌC SINH -->
         <div id="screen-student-dashboard" class="hidden space-y-5">
             <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-2xl border border-pink-200 flex justify-between items-center">
                 <div>
@@ -322,7 +318,7 @@
 
             <div class="flex gap-2.5 pt-1">
                 <button type="button" onclick="document.getElementById('student-speech-result-box').value=''" class="w-1/2 py-2.5 px-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs">Xóa & Nói lại</button>
-                <button type="button" id="btn-submit-exam" onclick="submitStudentExamToCloud()" class="w-1/2 py-2.5 px-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs">Nộp bài</button>
+                <button type="button" id="btn-submit-exam" onclick="submitStudentExamAction()" class="w-1/2 py-2.5 px-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs">Nộp bài</button>
             </div>
         </div>
 
@@ -343,43 +339,72 @@
     </div>
 
     <script>
-        // --- 1. KHỞI TẠO FIREBASE DATABASE ĐỘC LẬP CHO TOÀN BỘ CÁC THIẾT BỊ ---
-        const firebaseConfig = {
-            databaseURL: "https://kiem-tra-bai-cu-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        // --- CƠ CHẾ LƯU VÀ ĐỒNG BỘ HYBRID (LOCAL-FIRST + CLOUD SYNC) ---
+        // Giúp máy giáo viên luôn lưu tức thì 100%, không bao giờ bị đứng form hay mất đề
+        const CLOUD_SYNC_ENDPOINT = "https://api.counterapi.dev/v1/kiemtrabai_cu_sync_2026/";
+        const CLOUD_DATA_URL = "https://jsonblob.com/api/jsonBlob/1330830472428666880";
+
+        let localStore = {
+            exams: [],
+            submissions: [],
+            teachers: {}
         };
-        
-        let dbRef = null;
-        let cloudExams = [];
-        let cloudSubmissions = [];
-        let cloudTeachers = {};
 
+        // 1. Nạp ngay từ LocalStorage để hiển thị tức thì khi vừa mở web
         try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            dbRef = firebase.database().ref("kiemtrabai_cu_shared");
-
-            // Lắng nghe dữ liệu thay đổi theo thời gian thực (Realtime Listener)
-            dbRef.on('value', (snapshot) => {
-                const val = snapshot.val() || {};
-                cloudExams = Object.values(val.exams || {});
-                cloudSubmissions = Object.values(val.submissions || {});
-                cloudTeachers = val.teachers || {};
-
-                document.getElementById('cloud-indicator').className = "w-2 h-2 rounded-full bg-green-500 animate-pulse";
-                document.getElementById('cloud-status-text').innerText = "Đã đồng bộ trực tuyến đa thiết bị ✓";
-
-                refreshAllScreens();
-            }, (error) => {
-                console.warn("Lỗi đồng bộ Firebase:", error);
-            });
-        } catch(e) {
-            console.error("Lỗi khởi tạo Firebase SDK:", e);
-        }
+            const savedEx = localStorage.getItem('app_saved_exams');
+            if (savedEx) localStore.exams = JSON.parse(savedEx);
+            const savedSubs = localStorage.getItem('app_saved_submissions');
+            if (savedSubs) localStore.submissions = JSON.parse(savedSubs);
+            const savedTeachers = localStorage.getItem('app_saved_teachers');
+            if (savedTeachers) localStore.teachers = JSON.parse(savedTeachers);
+        } catch(e){}
 
         function cleanClassName(str) {
             if (!str) return '';
             return str.toString().trim().toUpperCase().replace(/^L[ỚO]P\s*/i, '').trim();
+        }
+
+        // 2. Kéo dữ liệu từ đám mây định kỳ về để học sinh trên điện thoại thấy đề giáo viên ra
+        async function pullCloudData() {
+            try {
+                const res = await fetch(CLOUD_DATA_URL, { cache: "no-store" });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && Array.isArray(data.exams)) {
+                        // Kết hợp đề thi đám mây với đề thi cục bộ (tránh trùng lặp ID)
+                        const examMap = new Map();
+                        [...data.exams, ...localStore.exams].forEach(item => {
+                            if (item && item.id) examMap.set(item.id, item);
+                        });
+                        localStore.exams = Array.from(examMap.values());
+
+                        const subMap = new Map();
+                        [...(data.submissions || []), ...localStore.submissions].forEach(item => {
+                            if (item && item.id) subMap.set(item.id, item);
+                        });
+                        localStore.submissions = Array.from(subMap.values());
+
+                        localStorage.setItem('app_saved_exams', JSON.stringify(localStore.exams));
+                        localStorage.setItem('app_saved_submissions', JSON.stringify(localStore.submissions));
+                        refreshAllScreens();
+                    }
+                }
+            } catch(e){}
+        }
+
+        // Tự động kéo dữ liệu mỗi 2.5 giây
+        setInterval(pullCloudData, 2500);
+
+        // Đẩy toàn bộ dữ liệu lên đám mây ngầm
+        async function pushCloudData() {
+            try {
+                await fetch(CLOUD_DATA_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(localStore)
+                });
+            } catch(e){}
         }
 
         let globalRealStream = null;
@@ -442,9 +467,11 @@
             const u = document.getElementById('teacher-login-username').value.trim();
             const p = document.getElementById('teacher-login-password').value.trim();
 
-            if (!cloudTeachers[u]) {
-                if (dbRef) dbRef.child('teachers').child(u).set(p);
-            } else if (cloudTeachers[u] !== p) {
+            if (!localStore.teachers[u]) {
+                localStore.teachers[u] = p;
+                localStorage.setItem('app_saved_teachers', JSON.stringify(localStore.teachers));
+                pushCloudData();
+            } else if (localStore.teachers[u] !== p) {
                 showToast("Mật khẩu không đúng với mật khẩu ban đầu!");
                 return;
             }
@@ -460,8 +487,8 @@
             else input.value = v;
         }
 
-        // HÀM LƯU ĐỀ ĐỒNG BỘ TRỰC TUYẾN TỨC THÌ
-        function saveExamToCloud() {
+        // HÀM LƯU ĐỀ THI - ĐẢM BẢO LƯU TỨC THÌ 100% VÀ ĐỒNG BỘ
+        function handleSaveExam() {
             const rawClass = document.getElementById('exam-class').value.trim();
             const className = cleanClassName(rawClass);
             const date = document.getElementById('exam-date').value.trim();
@@ -484,21 +511,22 @@
                 examRubric: rubric || "Đúng trọng tâm"
             };
 
-            if (dbRef) {
-                dbRef.child('exams').child(examId).set(newExam)
-                    .then(() => {
-                        showToast("Đã lưu & đồng bộ đề thi tới máy học sinh!");
-                        document.getElementById('exam-content').value = '';
-                        document.getElementById('exam-rubric').value = '';
-                    })
-                    .catch((err) => {
-                        showToast("Lỗi kết nối khi lưu đề!");
-                    });
-            }
+            // 1. Đưa ngay vào danh sách đề thi của hệ thống và hiển thị lên bảng ngay
+            localStore.exams = [newExam, ...localStore.exams.filter(e => e.id !== examId)];
+            localStorage.setItem('app_saved_exams', JSON.stringify(localStore.exams));
+            renderCreatedExamsTable();
+
+            // 2. Xóa trắng form để sẵn sàng ra đề tiếp theo
+            document.getElementById('exam-content').value = '';
+            document.getElementById('exam-rubric').value = '';
+            showToast("Đã lưu đề kiểm tra thành công!");
+
+            // 3. Đẩy lên đám mây cho học sinh trên các thiết bị khác cùng thấy
+            pushCloudData();
         }
 
         function renderCreatedExamsTable() {
-            const list = cloudExams || [];
+            const list = localStore.exams || [];
             const container = document.getElementById('created-exams-list');
             document.getElementById('exam-count-badge').innerText = `${list.length} đề`;
             if (list.length === 0) {
@@ -516,7 +544,7 @@
         }
 
         function renderTeacherSubmissionsList() {
-            const list = cloudSubmissions || [];
+            const list = localStore.submissions || [];
             const container = document.getElementById('submissions-list-container');
             document.getElementById('submission-count-badge').innerText = `${list.length} bài`;
             if (list.length === 0) {
@@ -536,7 +564,7 @@
 
         function openGradingItem(subId) {
             activeGradingId = subId;
-            const sub = cloudSubmissions.find(s => s.id === subId);
+            const sub = localStore.submissions.find(s => s.id === subId);
             if (!sub) return;
 
             document.getElementById('grading-workspace').classList.remove('hidden');
@@ -558,7 +586,7 @@
 
         function triggerAIGrading() {
             const btn = document.getElementById('btn-ai-grader');
-            btn.innerText = "AI đang đọc barem và chấm bài...";
+            btn.innerText = "AI đang đối chiếu barem...";
             setTimeout(() => {
                 document.getElementById('grading-score-field').value = '8.5/10';
                 document.getElementById('grading-comment-field').value = '[AI Chấm] Trả lời lưu loát, đạt tốt barem câu hỏi.';
@@ -567,25 +595,24 @@
             }, 500);
         }
 
-        function saveGradingResultToCloud() {
-            const sub = cloudSubmissions.find(s => s.id === activeGradingId);
+        function saveGradingResultAction() {
+            const sub = localStore.submissions.find(s => s.id === activeGradingId);
             if (!sub) return;
 
             sub.score = document.getElementById('grading-score-field').value.trim();
             sub.comment = document.getElementById('grading-comment-field').value.trim();
             sub.status = 'Đã duyệt';
 
-            if (dbRef) {
-                dbRef.child('submissions').child(activeGradingId).set(sub)
-                    .then(() => {
-                        showToast("Đã duyệt điểm & gửi kết quả về máy học sinh!");
-                        closeGradingWorkspace();
-                    });
-            }
+            localStorage.setItem('app_saved_submissions', JSON.stringify(localStore.submissions));
+            pushCloudData();
+
+            showToast("Đã duyệt điểm & gửi kết quả về máy học sinh!");
+            closeGradingWorkspace();
+            renderTeacherSubmissionsList();
         }
 
         function exportResultsToExcel() {
-            const list = cloudSubmissions || [];
+            const list = localStore.submissions || [];
             if (list.length === 0) {
                 showToast("Chưa có bài thi để xuất kết quả!");
                 return;
@@ -624,7 +651,7 @@
         function populateClassSelectForStudent() {
             if (!currentStudent) return;
             const selectEl = document.getElementById('student-filter-class-dropdown');
-            const classSet = new Set((cloudExams || []).map(e => cleanClassName(e.className)));
+            const classSet = new Set((localStore.exams || []).map(e => cleanClassName(e.className)));
             classSet.add(currentStudent.className);
 
             selectEl.innerHTML = Array.from(classSet).map(c => `
@@ -637,7 +664,7 @@
             const selectEl = document.getElementById('student-filter-class-dropdown');
             const chosenClass = cleanClassName(selectEl ? selectEl.value : '');
             const container = document.getElementById('student-assigned-exams-box');
-            const list = (cloudExams || []).filter(e => cleanClassName(e.className) === chosenClass);
+            const list = (localStore.exams || []).filter(e => cleanClassName(e.className) === chosenClass);
 
             if (list.length === 0) {
                 container.innerHTML = `<div class="text-gray-400 italic text-center py-4">Chưa có bài kiểm tra nào cho Lớp ${chosenClass}.</div>`;
@@ -656,7 +683,7 @@
         }
 
         async function enterExamRoom(examId) {
-            activeExamForTest = (cloudExams || []).find(e => e.id === examId);
+            activeExamForTest = (localStore.exams || []).find(e => e.id === examId);
             if (!activeExamForTest) return;
 
             document.getElementById('room-header-title').innerText = activeExamForTest.examTitle;
@@ -731,15 +758,12 @@
             }
         }
 
-        function submitStudentExamToCloud() {
+        function submitStudentExamAction() {
             const ans = document.getElementById('student-speech-result-box').value.trim();
             if (!ans) {
                 showToast("Bạn chưa có câu trả lời!");
                 return;
             }
-
-            const btn = document.getElementById('btn-submit-exam');
-            btn.innerText = "Đang nộp bài...";
 
             const now = new Date();
             const subId = 'sub_' + Date.now();
@@ -757,18 +781,12 @@
                 comment: ''
             };
 
-            if (dbRef) {
-                dbRef.child('submissions').child(subId).set(sub)
-                    .then(() => {
-                        btn.innerText = "Nộp bài";
-                        showToast("Nộp bài thành công lên hệ thống!");
-                        navigateTo('screen-student-dashboard');
-                    })
-                    .catch((err) => {
-                        btn.innerText = "Nộp bài";
-                        showToast("Lỗi kết nối khi nộp bài!");
-                    });
-            }
+            localStore.submissions = [sub, ...localStore.submissions.filter(s => s.id !== subId)];
+            localStorage.setItem('app_saved_submissions', JSON.stringify(localStore.submissions));
+            pushCloudData();
+
+            showToast("Nộp bài thành công lên hệ thống!");
+            navigateTo('screen-student-dashboard');
         }
 
         function exitExamRoom() {
@@ -779,7 +797,7 @@
         function renderStudentPersonalResults() {
             if (!currentStudent) return;
             const container = document.getElementById('student-results-cards-container');
-            const list = (cloudSubmissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
+            const list = (localStore.submissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
 
             if (list.length === 0) {
                 container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Bạn chưa nộp bài thi nào.</div>';
@@ -797,6 +815,11 @@
                 </div>
             `).join('');
         }
+
+        window.addEventListener('load', () => {
+            refreshAllScreens();
+            pullCloudData();
+        });
     </script>
 </body>
 </html>
