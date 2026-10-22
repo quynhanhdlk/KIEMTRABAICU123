@@ -1,7 +1,8 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import json
+import os
 
-# Thiết lập cấu hình trang hiển thị toàn màn hình
 st.set_page_config(
     page_title="Kiểm Tra Bài Cũ - Hệ thống thông minh",
     page_icon="🧪",
@@ -9,33 +10,102 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Ẩn thanh header và footer mặc định của Streamlit để giao diện đẹp mắt
-hide_streamlit_style = """
+# Ẩn các thành phần mặc định của Streamlit
+hide_style = """
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    .block-container {
-        padding-top: 0rem;
-        padding-bottom: 0rem;
-        padding-left: 0rem;
-        padding-right: 0rem;
-    }
-    iframe {
-        border: none !important;
-    }
+    .block-container { padding: 0rem; }
+    iframe { border: none !important; width: 100% !important; }
     </style>
 """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+st.markdown(hide_style, unsafe_allow_html=True)
 
-# Đọc toàn bộ mã HTML của ứng dụng từ tệp index.html cùng thư mục
+DATA_FILE = "shared_database.json"
+
+# Khởi tạo tệp cơ sở dữ liệu dùng chung nếu chưa có
+if not os.path.exists(DATA_FILE):
+    initial_data = {
+        "exams": [],
+        "submissions": [],
+        "teachers": []
+    }
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(initial_data, f, ensure_ascii=False, indent=2)
+
+def load_data():
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"exams": [], "submissions": [], "teachers": []}
+
+def save_data(data):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+# Xử lý đồng bộ dữ liệu thông qua tham số URL (Query Params)
+query_params = st.query_params
+
+if "action" in query_params:
+    action = query_params["action"]
+    db = load_data()
+    
+    if action == "save_exam":
+        exam_json = query_params.get("payload", "{}")
+        try:
+            new_exam = json.loads(exam_json)
+            # Cập nhật hoặc thêm mới
+            exams = [e for e in db.get("exams", []) if e.get("id") != new_exam.get("id")]
+            exams.insert(0, new_exam)
+            db["exams"] = exams
+            save_data(db)
+            st.json({"status": "success"})
+            st.stop()
+        except Exception as e:
+            st.json({"status": "error", "message": str(e)})
+            st.stop()
+
+    elif action == "delete_exam":
+        exam_id = query_params.get("exam_id", "")
+        db["exams"] = [e for e in db.get("exams", []) if e.get("id") != exam_id]
+        save_data(db)
+        st.json({"status": "success"})
+        st.stop()
+
+    elif action == "save_submission":
+        sub_json = query_params.get("payload", "{}")
+        try:
+            new_sub = json.loads(sub_json)
+            subs = [s for s in db.get("submissions", []) if s.get("id") != new_sub.get("id")]
+            subs.insert(0, new_sub)
+            db["submissions"] = subs
+            save_data(db)
+            st.json({"status": "success"})
+            st.stop()
+        except Exception as e:
+            st.json({"status": "error", "message": str(e)})
+            st.stop()
+
+    elif action == "get_all":
+        st.json(db)
+        st.stop()
+
+# Đọc tệp index.html và truyền dữ liệu thời gian thực vào web app
+current_db = load_data()
+db_script = f"""
+<script>
+    window.INITIAL_CLOUD_DATA = {json.dumps(current_db, ensure_ascii=False)};
+</script>
+"""
+
 try:
     with open("index.html", "r", encoding="utf-8") as f:
-        html_code = f.read()
+        raw_html = f.read()
+    
+    # Chèn dữ liệu máy chủ trực tiếp vào phần đầu thẻ <head> của index.html
+    full_html = raw_html.replace("<head>", f"<head>{db_script}", 1)
+    components.html(full_html, height=950, scrolling=True)
 except FileNotFoundError:
-    st.error("Không tìm thấy tệp index.html! Hãy đảm bảo đã đặt tệp index.html cùng thư mục với app.py.")
-    html_code = ""
-
-if html_code:
-    # Nhúng và render ứng dụng với chiều cao phù hợp
-    components.html(html_code, height=920, scrolling=True)
+    st.error("Không tìm thấy tệp index.html trong cùng thư mục!")
