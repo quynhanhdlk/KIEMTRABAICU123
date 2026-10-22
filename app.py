@@ -1,7 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Cấu hình hiển thị trang toàn màn hình
 st.set_page_config(
     page_title="Kiểm Tra Bài Cũ - Hệ thống thông minh",
     page_icon="🧪",
@@ -9,14 +8,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Ẩn hoàn toàn giao diện thừa của Streamlit
+# Cấu hình hiển thị toàn màn hình, loại bỏ viền và thanh cuộn thừa
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .block-container { padding: 0rem; margin: 0rem; max-width: 100% !important; }
-    iframe { border: none !important; width: 100% !important; height: 100vh !important; }
+    iframe { border: none !important; width: 100% !important; min-height: 100vh !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -24,7 +23,7 @@ try:
     with open("index.html", "r", encoding="utf-8") as f:
         html_code = f.read()
     
-    # Nhúng iframe hiển thị app với đầy đủ quyền cho Camera và Micro
+    # Nhúng mã nguồn với quyền truy cập đầy đủ
     components.html(html_code, height=980, scrolling=True)
 except FileNotFoundError:
-    st.error("Không tìm thấy tệp index.html trong thư mục gốc của repository!")
+    st.error("Không tìm thấy tệp index.html trong thư mục gốc!")
