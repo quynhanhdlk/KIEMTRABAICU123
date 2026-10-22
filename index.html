@@ -2,13 +2,13 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hệ Thống Kiểm Tra Bài Cũ Thông Minh</title>
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (xlsx) để xuất file Excel -->
+    <!-- SheetJS (xlsx) xuất Excel .xlsx -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- PubNub SDK: Kênh truyền thông tin thời gian thực đa thiết bị không bị chặn CORS -->
+    <!-- PubNub SDK: Kênh Realtime kết nối đa thiết bị -->
     <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.4.5.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Times+New+Roman&display=swap" rel="stylesheet">
     <style>
@@ -20,28 +20,28 @@
 </head>
 <body class="bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200 min-h-screen flex items-center justify-center p-3 sm:p-5 select-none">
 
-    <div id="app-container" class="w-full max-w-xl bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-5 sm:p-8 border border-pink-200/60 transition-all duration-300">
+    <div id="app-container" class="w-full max-w-xl bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-4 sm:p-8 border border-pink-200/60 transition-all duration-300">
         
         <!-- MÀN HÌNH CHÍNH -->
-        <div id="screen-main" class="space-y-5 text-center py-2">
-            <div class="inline-flex p-4 rounded-3xl bg-pink-100/80 text-pink-600 shadow-inner mb-1">
-                <span class="text-5xl animate-bounce">🧪</span>
+        <div id="screen-main" class="space-y-4 text-center py-2">
+            <div class="inline-flex p-3 sm:p-4 rounded-3xl bg-pink-100/80 text-pink-600 shadow-inner">
+                <span class="text-4xl sm:text-5xl animate-bounce">🧪</span>
             </div>
             
             <div>
-                <h1 class="text-3xl font-extrabold text-pink-600 tracking-tight">KIỂM TRA BÀI CŨ</h1>
-                <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Hệ thống hỏi đáp camera thật & chấm bài AI thông minh</p>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-pink-600 tracking-tight">KIỂM TRA BÀI CŨ</h1>
+                <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Hỏi đáp trực tiếp bằng Camera & Giọng nói</p>
                 <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span id="network-status-text">Kênh truyền đa thiết bị: Trực tuyến</span>
+                    <span>Đồng bộ đa thiết bị trực tuyến</span>
                 </div>
             </div>
 
             <!-- CẤP QUYỀN CAMERA & MICRO SỚM -->
-            <div id="device-perm-box" class="bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-2xl border-2 border-dashed border-pink-300 text-left space-y-2">
+            <div id="device-perm-box" class="bg-gradient-to-r from-pink-50 to-rose-50 p-3 sm:p-4 rounded-2xl border-2 border-dashed border-pink-300 text-left space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="font-bold text-xs sm:text-sm text-pink-800 flex items-center gap-1.5">
-                        <span id="perm-status-icon">🎥</span> <span id="perm-status-title">Bước 1: Kích hoạt quyền Camera & Micro</span>
+                        <span id="perm-status-icon">🎥</span> <span id="perm-status-title">Bước 1: Kích hoạt Camera & Micro</span>
                     </span>
                     <span id="perm-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full">Chờ cấp quyền</span>
                 </div>
@@ -55,33 +55,33 @@
                 </div>
             </div>
             
-            <div class="space-y-3 pt-2 max-w-md mx-auto">
-                <button type="button" onclick="navigateTo('screen-teacher-login')" class="w-full py-3.5 px-6 bg-pink-500 hover:bg-pink-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-pink-500/25 transition flex items-center justify-center gap-3">
+            <div class="space-y-3 pt-1 max-w-md mx-auto">
+                <button type="button" onclick="navigateTo('screen-teacher-login')" class="w-full py-3 sm:py-3.5 px-6 bg-pink-500 hover:bg-pink-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-pink-500/25 transition flex items-center justify-center gap-3">
                     <span class="text-xl">👩‍🏫</span> DÀNH CHO GIÁO VIÊN
                 </button>
                 
-                <button type="button" onclick="navigateTo('screen-student-login')" class="w-full py-3.5 px-6 bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-rose-500/25 transition flex items-center justify-center gap-3">
+                <button type="button" onclick="navigateTo('screen-student-login')" class="w-full py-3 sm:py-3.5 px-6 bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-rose-500/25 transition flex items-center justify-center gap-3">
                     <span class="text-xl">🎒</span> DÀNH CHO HỌC SINH
                 </button>
             </div>
         </div>
 
         <!-- ĐĂNG NHẬP GIÁO VIÊN -->
-        <div id="screen-teacher-login" class="hidden space-y-5">
+        <div id="screen-teacher-login" class="hidden space-y-4">
             <div class="flex items-center justify-between border-b border-pink-100 pb-3">
-                <h2 class="text-xl font-bold text-pink-600 flex items-center gap-2"><span>👩‍🏫</span> Đăng Nhập Giáo Viên</h2>
+                <h2 class="text-lg sm:text-xl font-bold text-pink-600 flex items-center gap-2"><span>👩‍🏫</span> Đăng Nhập Giáo Viên</h2>
                 <button type="button" onclick="navigateTo('screen-main')" class="text-gray-400 hover:text-pink-600 text-sm font-semibold">← Quay lại</button>
             </div>
-            <form onsubmit="handleTeacherSignIn(event)" class="space-y-4">
+            <form onsubmit="handleTeacherSignIn(event)" class="space-y-3 sm:space-y-4">
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Tên giáo viên / Tài khoản</label>
-                    <input type="text" id="teacher-login-username" placeholder="Nhập tên tài khoản..." class="w-full px-4 py-3 rounded-2xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
+                    <input type="text" id="teacher-login-username" placeholder="Nhập tên tài khoản..." class="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Mật khẩu</label>
-                    <input type="password" id="teacher-login-password" placeholder="Nhập mật khẩu..." class="w-full px-4 py-3 rounded-2xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
+                    <input type="password" id="teacher-login-password" placeholder="Nhập mật khẩu..." class="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
                 </div>
-                <button type="submit" class="w-full py-3.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition text-sm">
+                <button type="submit" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition text-sm">
                     Đăng Nhập Quản Trị
                 </button>
                 <p class="text-[11px] text-gray-400 text-center italic">* Nhập tên và mật khẩu ban đầu để tự động ghi nhớ.</p>
@@ -89,41 +89,41 @@
         </div>
 
         <!-- BÀN LÀM VIỆC GIÁO VIÊN -->
-        <div id="screen-teacher-dashboard" class="hidden space-y-5">
+        <div id="screen-teacher-dashboard" class="hidden space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-3">
                 <div>
-                    <h2 class="text-xl font-bold text-pink-600">BÀN LÀM VIỆC GIÁO VIÊN</h2>
+                    <h2 class="text-lg sm:text-xl font-bold text-pink-600">BÀN LÀM VIỆC GIÁO VIÊN</h2>
                     <p class="text-xs text-gray-500" id="teacher-header-user">Xin chào, Thầy/Cô</p>
                 </div>
-                <button type="button" onclick="navigateTo('screen-main')" class="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-xl text-xs">Đăng xuất</button>
+                <button type="button" onclick="navigateTo('screen-main')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-xl text-xs">Đăng xuất</button>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
-                <button type="button" onclick="navigateTo('screen-teacher-create-exam')" class="py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 py-2">
+                <button type="button" onclick="navigateTo('screen-teacher-create-exam')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
                     <span class="text-3xl">📝</span><span>Ra Đề Kiểm Tra</span>
                 </button>
-                <button type="button" onclick="navigateTo('screen-teacher-grade-exam')" class="py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+                <button type="button" onclick="navigateTo('screen-teacher-grade-exam')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
                     <span class="text-3xl">🤖</span><span>Chấm Bài Học Sinh</span>
                 </button>
             </div>
         </div>
 
-        <!-- MÀN HÌNH RA ĐỀ (LƯU TỨC THÌ & TRUYỀN PHÁT NGAY) -->
-        <div id="screen-teacher-create-exam" class="hidden space-y-4">
-            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
-                <h2 class="text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Ra Đề Kiểm Tra Bài Cũ</h2>
+        <!-- MÀN HÌNH RA ĐỀ -->
+        <div id="screen-teacher-create-exam" class="hidden space-y-3 sm:space-y-4">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-2">
+                <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Ra Đề Kiểm Tra Bài Cũ</h2>
                 <button type="button" onclick="navigateTo('screen-teacher-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Đóng</button>
             </div>
             
-            <div class="bg-pink-50/70 p-3.5 rounded-2xl border border-pink-200">
-                <div class="flex justify-between items-center mb-2">
+            <div class="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
+                <div class="flex justify-between items-center mb-1.5">
                     <h3 class="font-bold text-pink-700 text-xs uppercase tracking-wider">Danh sách đề đã ra</h3>
                     <span id="exam-count-badge" class="text-[11px] bg-pink-200 text-pink-800 px-2 py-0.5 rounded-full font-bold">0 đề</span>
                 </div>
-                <div id="created-exams-list" class="bg-white rounded-xl p-2 text-xs text-gray-600 space-y-2 max-h-36 overflow-y-auto border border-pink-100"></div>
+                <div id="created-exams-list" class="bg-white rounded-xl p-2 text-xs text-gray-600 space-y-1.5 max-h-32 overflow-y-auto border border-pink-100"></div>
             </div>
 
-            <div class="space-y-3">
-                <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-2.5">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-xs">Lớp học</label>
                         <input type="text" id="exam-class" placeholder="VD: 1 hoặc 10A1" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs uppercase bg-white">
@@ -147,28 +147,28 @@
                 </div>
             </div>
 
-            <button type="button" id="btn-save-exam" onclick="saveAndBroadcastExam()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
+            <button type="button" id="btn-save-exam" onclick="saveAndBroadcastExam()" class="w-full py-2.5 sm:py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
                 <span>📡</span> Lưu Đề & Truyền Trực Tiếp Đến Máy Học Sinh
             </button>
         </div>
 
         <!-- MÀN HÌNH CHẤM BÀI CỦA GIÁO VIÊN -->
-        <div id="screen-teacher-grade-exam" class="hidden space-y-4">
-            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
-                <h2 class="text-lg font-bold text-pink-600 flex items-center gap-2"><span>🤖</span> Chấm Bài & Quản Lý Kết Quả</h2>
+        <div id="screen-teacher-grade-exam" class="hidden space-y-3 sm:space-y-4">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-2">
+                <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>🤖</span> Chấm Bài & Quản Lý Kết Quả</h2>
                 <button type="button" onclick="navigateTo('screen-teacher-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Đóng</button>
             </div>
             
-            <div class="bg-pink-50/70 p-3.5 rounded-2xl border border-pink-200">
-                <div class="flex justify-between items-center mb-2">
+            <div class="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
+                <div class="flex justify-between items-center mb-1.5">
                     <h3 class="font-bold text-pink-700 text-xs uppercase tracking-wider">Danh sách bài nộp từ học sinh</h3>
                     <span id="submission-count-badge" class="text-[11px] bg-pink-200 text-pink-800 px-2 py-0.5 rounded-full font-bold">0 bài</span>
                 </div>
-                <div id="submissions-list-container" class="bg-white rounded-xl p-2 text-xs space-y-2 max-h-40 overflow-y-auto border border-pink-100"></div>
+                <div id="submissions-list-container" class="bg-white rounded-xl p-2 text-xs space-y-2 max-h-36 overflow-y-auto border border-pink-100"></div>
             </div>
 
-            <!-- Khung chi tiết chấm từng bài -->
-            <div id="grading-workspace" class="hidden bg-gray-50/90 p-3.5 rounded-2xl border border-gray-200 space-y-3">
+            <!-- Khung chi tiết chấm -->
+            <div id="grading-workspace" class="hidden bg-gray-50/90 p-3 rounded-2xl border border-gray-200 space-y-2.5">
                 <div class="flex justify-between items-start">
                     <div>
                         <h4 class="font-bold text-gray-800 text-xs sm:text-sm" id="grading-student-heading">Học sinh: --</h4>
@@ -192,52 +192,52 @@
                     <div id="grading-exam-rubric-view" class="text-[11px] text-indigo-700 bg-indigo-50/60 p-2 rounded-xl border border-indigo-200/80"></div>
                 </div>
 
-                <button type="button" id="btn-ai-grader" onclick="triggerAIGrading()" class="w-full py-2.5 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2">
+                <button type="button" id="btn-ai-grader" onclick="triggerAIGrading()" class="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2">
                     <span>🤖</span> Chấm bài bằng AI
                 </button>
 
                 <div class="grid grid-cols-3 gap-2 items-center">
                     <div class="col-span-1">
                         <label class="block text-gray-700 font-semibold text-[11px] mb-1">Điểm số:</label>
-                        <input type="text" id="grading-score-field" placeholder="VD: 8.5/10" class="w-full px-3 py-2 rounded-xl border border-pink-300 font-bold text-pink-600 text-sm bg-white">
+                        <input type="text" id="grading-score-field" placeholder="VD: 8.5/10" class="w-full px-3 py-1.5 rounded-xl border border-pink-300 font-bold text-pink-600 text-sm bg-white">
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-gray-700 font-semibold text-[11px] mb-1">Nhận xét của Giáo viên / AI:</label>
-                        <textarea id="grading-comment-field" rows="2" placeholder="Nhận xét cụ thể..." class="w-full px-3 py-1.5 rounded-xl border border-gray-200 text-xs bg-white"></textarea>
+                        <label class="block text-gray-700 font-semibold text-[11px] mb-1">Nhận xét:</label>
+                        <textarea id="grading-comment-field" rows="2" placeholder="Nhận xét cụ thể..." class="w-full px-3 py-1 rounded-xl border border-gray-200 text-xs bg-white"></textarea>
                     </div>
                 </div>
 
-                <button type="button" onclick="saveAndBroadcastGrading()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md">
+                <button type="button" onclick="saveAndBroadcastGrading()" class="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md">
                     <span>✓</span> Duyệt và Gửi kết quả về máy học sinh
                 </button>
             </div>
 
-            <button type="button" onclick="exportResultsToExcel()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 text-xs sm:text-sm">
+            <button type="button" onclick="exportResultsToExcel()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 text-xs sm:text-sm">
                 <span>📗</span> Xuất Bảng tính Excel (.xlsx chuẩn chính quy)
             </button>
         </div>
 
         <!-- ĐĂNG NHẬP HỌC SINH -->
         <div id="screen-student-login" class="hidden">
-            <div class="w-full max-w-sm mx-auto space-y-5">
+            <div class="w-full max-w-sm mx-auto space-y-4">
                 <div class="flex items-center justify-between border-b border-pink-100 pb-2">
-                    <h2 class="text-xl font-bold text-pink-600">Đăng Nhập Học Sinh</h2>
+                    <h2 class="text-lg sm:text-xl font-bold text-pink-600">Đăng Nhập Học Sinh</h2>
                     <button type="button" onclick="navigateTo('screen-main')" class="text-pink-500 text-xs font-semibold">← Quay lại</button>
                 </div>
-                <form onsubmit="handleStudentLogin(event)" class="space-y-3.5">
+                <form onsubmit="handleStudentLogin(event)" class="space-y-3">
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-xs">Họ và tên học sinh</label>
-                        <input type="text" id="student-name-input" placeholder="Nhập họ và tên..." class="w-full px-4 py-3 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
+                        <input type="text" id="student-name-input" placeholder="Nhập họ và tên..." class="w-full px-4 py-2.5 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-xs">Lớp học</label>
-                        <input type="text" id="student-class-input" placeholder="Lớp (VD: 1 hoặc 10A1)..." class="w-full px-4 py-3 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20 uppercase" required>
+                        <input type="text" id="student-class-input" placeholder="Lớp (VD: 1 hoặc 10A1)..." class="w-full px-4 py-2.5 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20 uppercase" required>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-xs">Mật khẩu</label>
-                        <input type="password" id="student-pass-input" placeholder="Nhập mật khẩu..." class="w-full px-4 py-3 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
+                        <input type="password" id="student-pass-input" placeholder="Nhập mật khẩu..." class="w-full px-4 py-2.5 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
                     </div>
-                    <button type="submit" class="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl shadow-lg text-sm">
+                    <button type="submit" class="w-full py-3 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl shadow-lg text-sm">
                         Vào Không Gian Kiểm Tra
                     </button>
                 </form>
@@ -245,107 +245,116 @@
         </div>
 
         <!-- BÀN LÀM VIỆC HỌC SINH -->
-        <div id="screen-student-dashboard" class="hidden space-y-5">
-            <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-2xl border border-pink-200 flex justify-between items-center">
+        <div id="screen-student-dashboard" class="hidden space-y-4">
+            <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-3.5 rounded-2xl border border-pink-200 flex justify-between items-center">
                 <div>
                     <h3 class="font-bold text-pink-700 text-sm sm:text-base" id="student-card-name">Học sinh: --</h3>
                     <p class="text-xs text-gray-500" id="student-card-class">Lớp: --</p>
                 </div>
                 <button type="button" onclick="handleStudentLogout()" class="px-3 py-1.5 bg-white border border-pink-200 text-pink-700 text-xs font-bold rounded-xl">Đăng xuất</button>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
-                <button type="button" onclick="navigateTo('screen-student-exam-select')" class="py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 py-1">
+                <button type="button" onclick="navigateTo('screen-student-exam-select')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
                     <span class="text-3xl">📝</span><span>Vào Kiểm Tra Bài Cũ</span>
                 </button>
-                <button type="button" onclick="navigateTo('screen-student-results')" class="py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+                <button type="button" onclick="navigateTo('screen-student-results')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
                     <span class="text-3xl">📊</span><span>Xem Kết Quả Chấm Điểm</span>
                 </button>
             </div>
         </div>
 
         <!-- CHỌN BÀI KIỂM TRA -->
-        <div id="screen-student-exam-select" class="hidden space-y-4">
-            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
-                <h2 class="text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Chọn Bài Kiểm Tra</h2>
+        <div id="screen-student-exam-select" class="hidden space-y-3 sm:space-y-4">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-2">
+                <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Chọn Bài Kiểm Tra</h2>
                 <button type="button" onclick="navigateTo('screen-student-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Quay lại</button>
             </div>
             <div class="space-y-3">
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Lớp của bạn:</label>
-                    <select id="student-filter-class-dropdown" onchange="renderStudentExamsList()" class="w-full px-3 py-2.5 rounded-xl border border-pink-200 text-xs font-semibold text-gray-700 bg-white">
+                    <select id="student-filter-class-dropdown" onchange="renderStudentExamsList()" class="w-full px-3 py-2 rounded-xl border border-pink-200 text-xs font-semibold text-gray-700 bg-white">
                     </select>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Danh sách bài kiểm tra được giao:</label>
-                    <div id="student-assigned-exams-box" class="bg-pink-50/50 p-3 rounded-2xl border border-pink-200 space-y-2 max-h-56 overflow-y-auto"></div>
+                    <div id="student-assigned-exams-box" class="bg-pink-50/50 p-2.5 rounded-2xl border border-pink-200 space-y-2 max-h-56 overflow-y-auto"></div>
                 </div>
             </div>
         </div>
 
-        <!-- PHÒNG THI -->
-        <div id="screen-student-exam-room" class="hidden space-y-3">
+        <!-- PHÒNG THI (ĐÃ TỐI ƯU GỌN GÀNG TRÊN IOS & ANDROID) -->
+        <div id="screen-student-exam-room" class="hidden space-y-2.5">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <div>
-                    <h2 class="text-base font-bold text-pink-600" id="room-header-title">Bài Kiểm Tra</h2>
+                    <h2 class="text-sm sm:text-base font-bold text-pink-600" id="room-header-title">Bài Kiểm Tra</h2>
                     <p class="text-[11px] text-gray-500" id="room-header-sub">Lớp -- | Ngày --</p>
                 </div>
                 <button type="button" onclick="exitExamRoom()" class="text-red-500 font-bold text-xs px-2.5 py-1 bg-red-50 rounded-lg border border-red-200">Thoát</button>
             </div>
 
-            <div class="relative bg-black rounded-2xl overflow-hidden shadow-md aspect-video max-h-56 mx-auto flex items-center justify-center border-2 border-pink-200">
-                <video id="webcam-video-element" autoplay playsinline muted class="w-full h-full object-cover"></video>
+            <!-- Khung hình CAMERA THẬT KHÓA NẰM TRONG TRANG (KHÔNG BUNG TOÀN MÀN HÌNH TRÊN IPHONE) -->
+            <div class="relative bg-black rounded-2xl overflow-hidden shadow-md w-full h-44 sm:h-52 mx-auto flex items-center justify-center border-2 border-pink-200">
+                <video id="webcam-video-element" autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover"></video>
                 <canvas id="hidden-snapshot-canvas" class="hidden"></canvas>
                 
-                <div class="absolute top-2.5 left-2.5 bg-red-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                    <span id="camera-status-label">WEBCAM THỰC ĐANG BẬT</span>
+                <div class="absolute top-2 left-2 bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    <span>CAMERA THỰC ĐANG BẬT</span>
                 </div>
-                <div class="absolute top-2.5 right-2.5 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full" id="snapshot-status-tag">
+                <div class="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full" id="snapshot-status-tag">
                     📸 Ảnh giám sát: 0/2
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-2.5 rounded-xl border border-pink-200 text-xs text-gray-800">
+            <!-- Câu hỏi đề bài -->
+            <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-2 sm:p-2.5 rounded-xl border border-pink-200 text-xs text-gray-800">
                 <strong class="text-pink-700">Câu hỏi:</strong> <span id="room-exam-question-text">--</span>
             </div>
 
+            <!-- Nút bật Micro tương tác thực trên iOS/Android -->
             <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-[11px] font-bold text-gray-700">🎙️ Trả lời bằng giọng nói qua micro:</label>
-                    <span class="text-[10px] text-red-500 font-semibold bg-red-50 px-2 py-0.5 rounded-md border border-red-200">🔒 Đã khóa dán (Paste)</span>
-                </div>
-                <textarea id="student-speech-result-box" rows="3" onpaste="return false;" onkeydown="preventPasteKeys(event)" placeholder="Hệ thống tự động chuyển giọng nói thành văn bản..." class="w-full px-3 py-2 rounded-xl border border-pink-200 text-xs bg-white resize-none"></textarea>
+                <button type="button" id="btn-toggle-mic" onclick="toggleSpeech()" class="w-full py-2 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
+                    <span id="mic-icon">🎙️</span> <span id="mic-btn-text">Bấm vào đây để BẬT MICRO nói</span>
+                </button>
             </div>
 
-            <div class="flex gap-2.5 pt-1">
-                <button type="button" onclick="document.getElementById('student-speech-result-box').value=''" class="w-1/2 py-2.5 px-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs">Xóa & Nói lại</button>
-                <button type="button" id="btn-submit-exam" onclick="submitStudentExamAction()" class="w-1/2 py-2.5 px-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs">Nộp bài</button>
+            <!-- Ô văn bản tự ghi giọng nói: KHÓA CHỈNH SỬA THỦ CÔNG (READONLY) -->
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[11px] font-bold text-gray-700">Văn bản nhận diện giọng nói (Chỉ đọc):</label>
+                    <span class="text-[10px] text-red-500 font-semibold bg-red-50 px-1.5 py-0.5 rounded border border-red-200">🔒 Khóa chỉnh sửa thủ công</span>
+                </div>
+                <textarea id="student-speech-result-box" rows="3" readonly placeholder="Bấm nút 'BẬT MICRO' ở trên rồi nói. Lời nói sẽ tự động chuyển thành chữ tại đây (Không thể gõ bàn phím)..." class="w-full px-3 py-2 rounded-xl border border-pink-200 text-xs bg-gray-50 text-gray-800 font-medium resize-none focus:outline-none cursor-not-allowed select-none"></textarea>
+            </div>
+
+            <div class="flex gap-2 pt-0.5">
+                <button type="button" onclick="clearSpeechText()" class="w-1/2 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs">Xóa & Nói lại</button>
+                <button type="button" id="btn-submit-exam" onclick="submitStudentExamAction()" class="w-1/2 py-2 px-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs">Nộp bài</button>
             </div>
         </div>
 
         <!-- XEM KẾT QUẢ HỌC SINH -->
-        <div id="screen-student-results" class="hidden space-y-4">
-            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
-                <h2 class="text-lg font-bold text-pink-600 flex items-center gap-2"><span>📊</span> Kết Quả Kiểm Tra Của Bạn</h2>
+        <div id="screen-student-results" class="hidden space-y-3 sm:space-y-4">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-2">
+                <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📊</span> Kết Quả Kiểm Tra Của Bạn</h2>
                 <button type="button" onclick="navigateTo('screen-student-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Quay lại</button>
             </div>
-            <div id="student-results-cards-container" class="bg-pink-50/40 p-3 rounded-2xl border border-pink-200 space-y-3 max-h-72 overflow-y-auto text-xs"></div>
+            <div id="student-results-cards-container" class="bg-pink-50/40 p-3 rounded-2xl border border-pink-200 space-y-2.5 max-h-72 overflow-y-auto text-xs"></div>
         </div>
 
     </div>
 
     <!-- TOAST THÔNG BÁO -->
-    <div id="app-toast" class="fixed bottom-5 right-5 bg-gray-900/95 text-white px-4 py-2.5 rounded-2xl shadow-xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 text-xs font-semibold flex items-center gap-2 max-w-sm pointer-events-none">
+    <div id="app-toast" class="fixed bottom-4 right-4 bg-gray-900/95 text-white px-3.5 py-2 rounded-2xl shadow-xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 text-xs font-semibold flex items-center gap-2 max-w-sm pointer-events-none">
         <span id="toast-text">Thông báo</span>
     </div>
 
     <script>
-        // --- 1. HỆ THỐNG TRUYỀN TIN REALTIME THỜI GIAN THỰC ĐA THIẾT BỊ ---
-        // Sử dụng PubNub demo keys công khai chạy được từ bất kỳ đâu, không lo CORS hay phân quyền
+        // --- 1. PUBNUB REALTIME TRUYỀN PHÁT DỮ LIỆU ĐA THIẾT BỊ ---
         const pubnub = new PubNub({
             publishKey: "demo",
             subscribeKey: "demo",
-            userId: "user_" + Math.random().toString(36).substring(2, 9),
+            userId: "u_" + Math.random().toString(36).substring(2, 9),
             ssl: true
         });
 
@@ -357,7 +366,6 @@
             teachers: {}
         };
 
-        // Đọc dữ liệu đã lưu trong máy
         try {
             const e = localStorage.getItem('kiemtra_exams');
             if (e) localStore.exams = JSON.parse(e);
@@ -367,7 +375,6 @@
             if (t) localStore.teachers = JSON.parse(t);
         } catch(err){}
 
-        // Đăng ký kênh truyền tin nhắn giữa các máy
         pubnub.subscribe({ channels: [REALTIME_CHANNEL] });
 
         pubnub.addListener({
@@ -394,7 +401,6 @@
                         refreshAllScreens();
                     }
                 } else if (msg.type === "REQUEST_SYNC") {
-                    // Nếu máy giáo viên đang có đề, tự động gửi lại cho máy học sinh vừa vào
                     if (localStore.exams.length > 0) {
                         pubnub.publish({
                             channel: REALTIME_CHANNEL,
@@ -402,10 +408,10 @@
                         });
                     }
                 } else if (msg.type === "SYNC_EXAMS_RESPONSE") {
-                    const incomingExams = msg.payload;
-                    if (Array.isArray(incomingExams)) {
+                    const incoming = msg.payload;
+                    if (Array.isArray(incoming)) {
                         const map = new Map();
-                        [...incomingExams, ...localStore.exams].forEach(item => {
+                        [...incoming, ...localStore.exams].forEach(item => {
                             if (item && item.id) map.set(item.id, item);
                         });
                         localStore.exams = Array.from(map.values());
@@ -416,7 +422,6 @@
             }
         });
 
-        // Khi vừa mở web, gửi tín hiệu xin dữ liệu từ máy giáo viên
         setTimeout(() => {
             pubnub.publish({
                 channel: REALTIME_CHANNEL,
@@ -431,6 +436,7 @@
 
         let globalRealStream = null;
         let globalSpeech = null;
+        let isMicActive = false;
         let activeExamForTest = null;
         let activeGradingId = null;
         let currentSnapshots = [];
@@ -471,13 +477,16 @@
         async function requestDeviceAccessEarly() {
             const btn = document.getElementById('btn-request-early-perm');
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" },
+                    audio: true
+                });
                 globalRealStream = stream;
                 document.getElementById('perm-badge').innerText = "Đã cấp quyền ✓";
                 document.getElementById('perm-badge').className = "text-[10px] bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full";
                 btn.className = "w-full py-2.5 px-4 bg-green-600 text-white font-bold text-xs rounded-xl shadow-md";
                 btn.innerText = "✓ Camera & Micro Đã Sẵn Sàng";
-                showToast("Đã cấp quyền thiết bị thành công!");
+                showToast("Đã kích hoạt thiết bị thành công!");
             } catch(e) {
                 showToast("Vui lòng cấp quyền Camera và Micro!");
             }
@@ -508,7 +517,6 @@
             else input.value = v;
         }
 
-        // HÀM LƯU ĐỀ THI VÀ PHÁT SÓNG TRỰC TIẾP TỚI CÁC MÁY HỌC SINH
         function saveAndBroadcastExam() {
             const rawClass = document.getElementById('exam-class').value.trim();
             const className = cleanClassName(rawClass);
@@ -532,24 +540,17 @@
                 examRubric: rubric || "Đúng trọng tâm"
             };
 
-            // 1. Cập nhật và lưu vào máy giáo viên ngay lập tức (không chờ mạng)
             localStore.exams = [newExam, ...localStore.exams.filter(e => e.id !== examId)];
             localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
             renderCreatedExamsTable();
 
-            // 2. Làm sạch form nhập
             document.getElementById('exam-content').value = '';
             document.getElementById('exam-rubric').value = '';
-            showToast("Đã lưu đề! Đang truyền đến máy học sinh...");
+            showToast("Đã lưu đề! Đang truyền đến học sinh...");
 
-            // 3. Phát trực tiếp qua kênh Realtime đến mọi thiết bị học sinh
             pubnub.publish({
                 channel: REALTIME_CHANNEL,
                 message: { type: "NEW_EXAM", payload: newExam }
-            }, function(status, response) {
-                if (!status.error) {
-                    showToast("Đã phát sóng đề thành công đến máy học sinh!");
-                }
             });
         }
 
@@ -633,7 +634,6 @@
 
             localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
 
-            // Bắn kết quả về máy học sinh
             pubnub.publish({
                 channel: REALTIME_CHANNEL,
                 message: { type: "UPDATE_GRADE", payload: sub }
@@ -674,7 +674,6 @@
             document.getElementById('student-card-name').innerText = `Học sinh: ${name}`;
             document.getElementById('student-card-class').innerText = `Lớp: ${className}`;
             
-            // Gửi yêu cầu xin lại đề thi từ máy giáo viên ngay khi đăng nhập
             pubnub.publish({
                 channel: REALTIME_CHANNEL,
                 message: { type: "REQUEST_SYNC" }
@@ -731,21 +730,30 @@
             document.getElementById('room-exam-question-text').innerText = activeExamForTest.examContent;
             document.getElementById('student-speech-result-box').value = '';
             currentSnapshots = [];
+            isMicActive = false;
+            updateMicButtonUI();
 
             navigateTo('screen-student-exam-room');
 
-            // BẬT WEBCAM VÀ MICRO THẬT
+            // BẬT WEBCAM KHÓA TRONG KHUNG CHO CẢ IOS VÀ ANDROID
             try {
                 if (!globalRealStream) {
-                    globalRealStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    globalRealStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "user" },
+                        audio: true
+                    });
                 }
-                document.getElementById('webcam-video-element').srcObject = globalRealStream;
-                startSpeech();
+                const v = document.getElementById('webcam-video-element');
+                v.srcObject = globalRealStream;
+                v.setAttribute('playsinline', '');
+                v.setAttribute('webkit-playsinline', '');
+                v.play();
 
-                timer1 = setTimeout(() => captureSnap(1), 2000);
-                timer2 = setTimeout(() => captureSnap(2), 6000);
+                // Tự động chụp 2 khoảnh khắc vào bài nộp
+                timer1 = setTimeout(() => captureSnap(1), 2500);
+                timer2 = setTimeout(() => captureSnap(2), 6500);
             } catch(e) {
-                showToast("Không thể mở webcam trên thiết bị!");
+                showToast("Không thể mở camera thiết bị!");
             }
         }
 
@@ -760,50 +768,106 @@
             document.getElementById('snapshot-status-tag').innerText = `📸 Ảnh giám sát: ${currentSnapshots.length}/2`;
         }
 
-        function startSpeech() {
-            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SR) return;
-            globalSpeech = new SR();
-            globalSpeech.lang = 'vi-VN';
-            globalSpeech.continuous = true;
-            globalSpeech.interimResults = true;
-            globalSpeech.onresult = (e) => {
-                let txt = '';
-                for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
-                document.getElementById('student-speech-result-box').value = txt;
-            };
-            globalSpeech.onend = () => {
-                const room = document.getElementById('screen-student-exam-room');
-                if (room && !room.classList.contains('hidden') && globalSpeech) {
-                    try { globalSpeech.start(); } catch(e){}
+        // --- HỆ THỐNG NHẬN DIỆN GIỌNG NÓI CHUẨN IOS & ANDROID ---
+        function toggleSpeech() {
+            if (!isMicActive) {
+                startSpeechEngine();
+            } else {
+                stopSpeechEngine();
+            }
+        }
+
+        function startSpeechEngine() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showToast("Trình duyệt không hỗ trợ nhận diện giọng nói!");
+                return;
+            }
+
+            try {
+                if (globalSpeech) {
+                    globalSpeech.stop();
                 }
-            };
-            try { globalSpeech.start(); } catch(e){}
+                globalSpeech = new SpeechRecognition();
+                globalSpeech.lang = 'vi-VN';
+                globalSpeech.continuous = true;
+                globalSpeech.interimResults = true;
+
+                globalSpeech.onstart = () => {
+                    isMicActive = true;
+                    updateMicButtonUI();
+                    showToast("Đang lắng nghe giọng nói của bạn...");
+                };
+
+                globalSpeech.onresult = (event) => {
+                    let fullText = '';
+                    for (let i = 0; i < event.results.length; i++) {
+                        fullText += event.results[i][0].transcript;
+                    }
+                    // Ghi đè vào ô textarea chỉ đọc (không cho sửa tay)
+                    document.getElementById('student-speech-result-box').value = fullText;
+                };
+
+                globalSpeech.onerror = (event) => {
+                    console.warn("Lỗi mic:", event.error);
+                };
+
+                globalSpeech.onend = () => {
+                    if (isMicActive) {
+                        try { globalSpeech.start(); } catch(e){}
+                    }
+                };
+
+                globalSpeech.start();
+            } catch(err) {
+                showToast("Không thể kích hoạt micro!");
+            }
+        }
+
+        function stopSpeechEngine() {
+            isMicActive = false;
+            if (globalSpeech) {
+                globalSpeech.stop();
+            }
+            updateMicButtonUI();
+            showToast("Đã tắt micro!");
+        }
+
+        function updateMicButtonUI() {
+            const btn = document.getElementById('btn-toggle-mic');
+            const icon = document.getElementById('mic-icon');
+            const txt = document.getElementById('mic-btn-text');
+
+            if (isMicActive) {
+                btn.className = "w-full py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 animate-pulse";
+                icon.innerText = "🛑";
+                txt.innerText = "ĐANG LẮNG NGHE... (BẤM ĐỂ DỪNG NÓI)";
+            } else {
+                btn.className = "w-full py-2 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2";
+                icon.innerText = "🎙️";
+                txt.innerText = "Bấm vào đây để BẬT MICRO nói";
+            }
+        }
+
+        function clearSpeechText() {
+            document.getElementById('student-speech-result-box').value = '';
+            showToast("Đã xóa nội dung. Hãy bật micro để nói lại!");
         }
 
         function stopHardware() {
             clearTimeout(timer1);
             clearTimeout(timer2);
-            if (globalSpeech) {
-                globalSpeech.onend = null;
-                globalSpeech.stop();
-                globalSpeech = null;
-            }
-        }
-
-        function preventPasteKeys(e) {
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
-                e.preventDefault();
-                showToast("Đã khóa tính năng dán bài!");
-            }
+            stopSpeechEngine();
         }
 
         function submitStudentExamAction() {
             const ans = document.getElementById('student-speech-result-box').value.trim();
             if (!ans) {
-                showToast("Bạn chưa có câu trả lời!");
+                showToast("Bạn chưa có câu trả lời bằng giọng nói!");
                 return;
             }
+
+            stopSpeechEngine();
 
             const now = new Date();
             const subId = 'sub_' + Date.now();
@@ -824,7 +888,6 @@
             localStore.submissions = [sub, ...localStore.submissions.filter(s => s.id !== subId)];
             localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
 
-            // Bắn bài làm về máy giáo viên
             pubnub.publish({
                 channel: REALTIME_CHANNEL,
                 message: { type: "NEW_SUBMISSION", payload: sub }
