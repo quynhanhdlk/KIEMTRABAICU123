@@ -19,19 +19,23 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Lấy an toàn từ Streamlit Secrets
+# Lấy API Key an toàn từ Streamlit Secrets hoặc biến môi trường
 api_key = ""
-if "GEMINI_API_KEY" in st.secrets:
-    api_key = st.secrets["GEMINI_API_KEY"]
-elif "GEMINI_API_KEY" in os.environ:
-    api_key = os.environ["GEMINI_API_KEY"]
+try:
+    if "GEMINI_API_KEY" in st.secrets:
+        api_key = st.secrets["GEMINI_API_KEY"]
+except Exception:
+    pass
+
+if not api_key:
+    api_key = os.environ.get("GEMINI_API_KEY", "")
 
 try:
     with open("index.html", "r", encoding="utf-8") as f:
         html_code = f.read()
     
-    # Nạp mã an toàn vào web
+    # Nạp mã API Key vào index.html trước khi hiển thị
     html_code = html_code.replace("{{GEMINI_API_KEY}}", api_key)
     components.html(html_code, height=980, scrolling=True)
 except FileNotFoundError:
-    st.error("Không tìm thấy tệp index.html trong repository!")
+    st.error("Không tìm thấy tệp index.html trong thư mục gốc của repository!")
