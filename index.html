@@ -157,7 +157,7 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Tiêu đề bài kiểm tra</label>
-                    <input type="text" id="exam-title" placeholder="VD: Kiểm tra bài cũ Hoá học..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white">
+                    <input type="text" id="exam-title" placeholder="VD: Kiểm tra bài cũ..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white">
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Nội dung câu hỏi đề bài</label>
@@ -165,7 +165,7 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Barem đáp án & Mọi yêu cầu cho AI chấm:</label>
-                    <textarea id="exam-rubric" rows="4" placeholder="Nhập barem điểm và mọi chỉ đạo cho AI tại đây. Ví dụ:&#10;- Nêu đúng định nghĩa (5 điểm)&#10;- Lấy 2 ví dụ (5 điểm)&#10;- Yêu cầu AI: Nhận xét ân cần, khen ngợi trước, nhắc nhở thiếu ví dụ nếu có." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white leading-relaxed"></textarea>
+                    <textarea id="exam-rubric" rows="4" placeholder="Nhập tiêu chuẩn chấm và mọi mong muốn cho AI tại đây. Ví dụ:&#10;- Nêu đúng định nghĩa (5 điểm)&#10;- Lấy 2 ví dụ (5 điểm)&#10;- Yêu cầu AI: Nhận xét ân cần, khen ngợi trước, nhắc nhở thiếu ví dụ nếu có." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white leading-relaxed"></textarea>
                 </div>
             </div>
 
@@ -215,19 +215,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-indigo-800 font-semibold text-[11px] mb-1">📋 Barem đối chiếu của đề bài:</label>
+                    <label class="block text-indigo-800 font-semibold text-[11px] mb-1">📋 Barem đối chiếu & Yêu cầu của đề bài:</label>
                     <div id="grading-exam-rubric-view" class="text-[11px] text-indigo-900 bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 whitespace-pre-wrap leading-relaxed max-h-28 overflow-y-auto"></div>
-                </div>
-
-                <!-- Cấu hình Gemini API Key tùy chọn -->
-                <div class="bg-rose-50/60 p-2.5 rounded-xl border border-rose-200/80">
-                    <div class="flex items-center justify-between">
-                        <label class="text-[10px] font-bold text-rose-800 flex items-center gap-1">
-                            <span>🔑</span> Gemini API Key (Kết nối Google AI trực tiếp):
-                        </label>
-                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-pink-600 underline font-semibold">Lấy Key miễn phí</a>
-                    </div>
-                    <input type="password" id="gemini-api-key" placeholder="Dán Gemini API Key để AI đọc barem và chấm tự nhiên 100%..." class="w-full mt-1 px-3 py-1.5 rounded-lg border border-rose-200 text-[11px] bg-white focus:outline-none focus:ring-1 focus:ring-pink-500">
                 </div>
 
                 <!-- Nút bấm AI Chấm bài -->
@@ -453,13 +442,6 @@
             if (s) localStore.submissions = JSON.parse(s);
             const t = localStorage.getItem('kiemtra_teachers');
             if (t) localStore.teachers = JSON.parse(t);
-            const savedKey = localStorage.getItem('gemini_api_key_stored');
-            if (savedKey) {
-                setTimeout(() => {
-                    const el = document.getElementById('gemini-api-key');
-                    if (el) el.value = savedKey;
-                }, 500);
-            }
         } catch(err){}
 
         pubnub.subscribe({ channels: [REALTIME_CHANNEL] });
@@ -868,20 +850,17 @@
                 return;
             }
 
-            let apiKey = document.getElementById('gemini-api-key')?.value.trim();
-            if (!apiKey) {
-                apiKey = localStorage.getItem('gemini_api_key_stored') || '';
-            }
+            // Tự động nhận API Key tiêm vào từ app.py hoặc lấy từ bộ nhớ trình duyệt
+            let injectedKey = "{{GEMINI_API_KEY}}";
+            let apiKey = (injectedKey && !injectedKey.includes("{{")) ? injectedKey : (localStorage.getItem('gemini_api_key_stored') || '');
 
             if (!apiKey) {
-                apiKey = prompt("Vui lòng dán Gemini API Key để AI chấm trực tiếp (lấy miễn phí tại https://aistudio.google.com/app/apikey):");
+                apiKey = prompt("Vui lòng dán Gemini API Key để AI chấm trực tiếp (chỉ cần nhập 1 lần, lấy miễn phí tại https://aistudio.google.com/app/apikey):");
                 if (apiKey) {
                     apiKey = apiKey.trim();
                     localStorage.setItem('gemini_api_key_stored', apiKey);
-                    const keyInput = document.getElementById('gemini-api-key');
-                    if (keyInput) keyInput.value = apiKey;
                 } else {
-                    showToast("Chưa nhập Gemini API Key!");
+                    showToast("Chưa có Gemini API Key!");
                     return;
                 }
             }
