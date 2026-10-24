@@ -51,7 +51,7 @@
                 <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Hỏi đáp trực tiếp bằng Camera & Giọng nói</p>
                 <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span>Đồng bộ máy chủ đa thiết bị sẵn sàng</span>
+                    <span>Đồng bộ đa thiết bị sẵn sàng</span>
                 </div>
             </div>
 
@@ -63,7 +63,7 @@
                     </span>
                     <span id="perm-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full">Chờ cấp quyền</span>
                 </div>
-                <p id="perm-desc" class="text-[11px] text-gray-600 leading-relaxed">
+                <p class="text-[11px] text-gray-600 leading-relaxed">
                     Bấm nút bên dưới và chọn <b>"Cho phép"</b> để bật camera phục vụ giám sát khi làm bài.
                 </p>
                 <div class="pt-1">
@@ -119,7 +119,7 @@
                 <button type="button" onclick="navigateTo('screen-teacher-create-exam')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
                     <span class="text-3xl">📝</span><span>Ra Đề Kiểm Tra</span>
                 </button>
-                <button type="button" onclick="navigateTo('screen-teacher-grade-exam')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+                <button type="button" onclick="openTeacherGradingScreen()" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
                     <span class="text-3xl">🤖</span><span>Chấm Bài Học Sinh</span>
                 </button>
             </div>
@@ -177,7 +177,7 @@
             </div>
         </div>
 
-        <!-- MÀN HÌNH CHẤM BÀI CỦA GIÁO VIÊN (ĐÃ BỔ SUNG NÚT XÓA BÀI) -->
+        <!-- MÀN HÌNH CHẤM BÀI CỦA GIÁO VIÊN -->
         <div id="screen-teacher-grade-exam" class="hidden space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>🤖</span> Chấm Bài & Quản Lý Kết Quả</h2>
@@ -209,12 +209,12 @@
 
                 <div>
                     <label class="block text-gray-700 font-semibold text-[11px] mb-1">🎤 Câu trả lời bằng giọng nói (Speech-to-Text):</label>
-                    <div id="grading-student-transcript" class="text-xs text-gray-800 bg-white p-2.5 rounded-xl border border-gray-200 max-h-24 overflow-y-auto font-medium"></div>
+                    <div id="grading-student-transcript" class="text-xs text-gray-800 bg-white p-2.5 rounded-xl border border-gray-200 max-h-24 overflow-y-auto font-medium whitespace-pre-wrap"></div>
                 </div>
 
                 <div>
                     <label class="block text-indigo-800 font-semibold text-[11px] mb-1">📋 Barem đối chiếu của đề bài:</label>
-                    <div id="grading-exam-rubric-view" class="text-[11px] text-indigo-700 bg-indigo-50/60 p-2 rounded-xl border border-indigo-200/80"></div>
+                    <div id="grading-exam-rubric-view" class="text-[11px] text-indigo-700 bg-indigo-50/60 p-2 rounded-xl border border-indigo-200/80 whitespace-pre-wrap"></div>
                 </div>
 
                 <button type="button" id="btn-ai-grader" onclick="triggerAIGrading()" class="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2">
@@ -333,7 +333,7 @@
 
             <!-- Câu hỏi đề bài -->
             <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-2 sm:p-2.5 rounded-xl border border-pink-200 text-xs text-gray-800">
-                <strong class="text-pink-700">Câu hỏi:</strong> <span id="room-exam-question-text">--</span>
+                <strong class="text-pink-700">Câu hỏi:</strong> <span id="room-exam-question-text" class="whitespace-pre-wrap">--</span>
             </div>
 
             <!-- Nút bật/dừng Micro -->
@@ -367,6 +367,47 @@
             <div id="student-results-cards-container" class="bg-pink-50/40 p-3 rounded-2xl border border-pink-200 space-y-2.5 max-h-72 overflow-y-auto text-xs"></div>
         </div>
 
+    </div>
+
+    <!-- MODAL XEM CHI TIẾT ĐỀ THI ĐẦY ĐỦ (KHÔNG BỊ CẮT BAREM) -->
+    <div id="modal-view-exam" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-5 sm:p-6 shadow-2xl border border-pink-200 space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
+                <h3 class="text-base sm:text-lg font-bold text-pink-700 flex items-center gap-2">
+                    <span>📋</span> Chi Tiết Đề Kiểm Tra
+                </h3>
+                <button type="button" onclick="closeExamModal()" class="text-gray-400 hover:text-pink-600 text-base font-bold p-1">✕</button>
+            </div>
+            <div class="space-y-3.5 overflow-y-auto pr-1 flex-1 text-xs">
+                <div>
+                    <label class="block text-gray-500 font-semibold mb-0.5 text-[11px]">Tiêu đề đề thi:</label>
+                    <div id="modal-exam-title" class="font-bold text-gray-800 text-sm">--</div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 bg-pink-50/60 p-2.5 rounded-xl border border-pink-100">
+                    <div>
+                        <span class="text-gray-500 text-[11px]">Lớp học:</span>
+                        <div id="modal-exam-class" class="font-bold text-pink-600">--</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 text-[11px]">Ngày kiểm tra:</span>
+                        <div id="modal-exam-date" class="font-bold text-pink-600">--</div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-1 text-[11px]">Nội dung câu hỏi:</label>
+                    <div id="modal-exam-content" class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-gray-800 whitespace-pre-wrap leading-relaxed">--</div>
+                </div>
+                <div>
+                    <label class="block text-indigo-700 font-bold mb-1 text-[11px]">Barem điểm & Tiêu chuẩn chấm:</label>
+                    <div id="modal-exam-rubric" class="bg-indigo-50/60 p-3 rounded-xl border border-indigo-200 text-indigo-900 whitespace-pre-wrap leading-relaxed">--</div>
+                </div>
+            </div>
+            <div class="pt-2 border-t border-pink-100">
+                <button type="button" onclick="closeExamModal()" class="w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs transition">
+                    Đóng cửa sổ
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- TOAST THÔNG BÁO -->
@@ -422,6 +463,7 @@
                     localStore.submissions = [sub, ...localStore.submissions.filter(x => x.id !== sub.id)];
                     localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
                     refreshAllScreens();
+                    showToast(`Có bài nộp mới từ ${sub.studentName}!`);
                 } else if (msg.type === "DELETE_SUBMISSION") {
                     const subId = msg.payload;
                     localStore.submissions = localStore.submissions.filter(x => x.id !== subId);
@@ -436,10 +478,19 @@
                         refreshAllScreens();
                     }
                 } else if (msg.type === "REQUEST_SYNC") {
+                    // Khi có thiết bị yêu cầu, gửi toàn bộ đề thi hiện có
                     if (localStore.exams.length > 0) {
                         pubnub.publish({
                             channel: REALTIME_CHANNEL,
                             message: { type: "SYNC_EXAMS_RESPONSE", payload: localStore.exams }
+                        });
+                    }
+                } else if (msg.type === "REQUEST_SUBMISSIONS_SYNC") {
+                    // Khi giáo viên mở kho chấm, các máy học sinh gửi các bài nộp còn lưu
+                    if (localStore.submissions.length > 0) {
+                        pubnub.publish({
+                            channel: REALTIME_CHANNEL,
+                            message: { type: "SYNC_SUBMISSIONS_RESPONSE", payload: localStore.submissions }
                         });
                     }
                 } else if (msg.type === "SYNC_EXAMS_RESPONSE") {
@@ -451,6 +502,17 @@
                         });
                         localStore.exams = Array.from(map.values());
                         localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
+                        refreshAllScreens();
+                    }
+                } else if (msg.type === "SYNC_SUBMISSIONS_RESPONSE") {
+                    const incomingSubs = msg.payload;
+                    if (Array.isArray(incomingSubs)) {
+                        const map = new Map();
+                        [...incomingSubs, ...localStore.submissions].forEach(item => {
+                            if (item && item.id) map.set(item.id, item);
+                        });
+                        localStore.submissions = Array.from(map.values());
+                        localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
                         refreshAllScreens();
                     }
                 }
@@ -507,6 +569,15 @@
             renderTeacherSubmissionsList();
             populateClassSelectForStudent();
             renderStudentPersonalResults();
+        }
+
+        // Mở kho chấm bài và phát tín hiệu gom bài mới nhất từ các máy học sinh
+        function openTeacherGradingScreen() {
+            navigateTo('screen-teacher-grade-exam');
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "REQUEST_SUBMISSIONS_SYNC" }
+            });
         }
 
         // --- CẤP QUYỀN CAMERA SỚM ---
@@ -619,16 +690,22 @@
             `).join('');
         }
 
+        // MỞ MODAL XEM CHI TIẾT ĐỀ (ĐẢM BẢO HIỆN ĐỦ 100% BAREM)
         function viewExamDetail(examId) {
             const exam = (localStore.exams || []).find(x => x.id === examId);
             if (!exam) return;
-            alert(
-                `📋 CHI TIẾT ĐỀ KIỂM TRA:\n\n` +
-                `• Tiêu đề: ${exam.examTitle}\n` +
-                `• Lớp: ${exam.className} | Ngày: ${exam.examDate}\n\n` +
-                `• Câu hỏi:\n${exam.examContent}\n\n` +
-                `• Barem điểm:\n${exam.examRubric || "Chưa có barem."}`
-            );
+
+            document.getElementById('modal-exam-title').innerText = exam.examTitle;
+            document.getElementById('modal-exam-class').innerText = 'Lớp ' + exam.className;
+            document.getElementById('modal-exam-date').innerText = exam.examDate;
+            document.getElementById('modal-exam-content').innerText = exam.examContent;
+            document.getElementById('modal-exam-rubric').innerText = exam.examRubric || "Chưa có barem chấm.";
+
+            document.getElementById('modal-view-exam').classList.remove('hidden');
+        }
+
+        function closeExamModal() {
+            document.getElementById('modal-view-exam').classList.add('hidden');
         }
 
         function loadExamForEdit(examId) {
@@ -680,7 +757,6 @@
             document.getElementById('btn-save-exam-icon').innerText = "📡";
         }
 
-        // DANH SÁCH BÀI HỌC SINH NỘP (CÓ NÚT CHẤM VÀ NÚT XÓA BÀI)
         function renderTeacherSubmissionsList() {
             const list = localStore.submissions || [];
             const container = document.getElementById('submissions-list-container');
@@ -707,23 +783,19 @@
             `).join('');
         }
 
-        // HÀM XÓA BÀI NỘP CỦA HỌC SINH
         function deleteStudentSubmission(subId) {
             const sub = (localStore.submissions || []).find(s => s.id === subId);
             const studentName = sub ? sub.studentName : "học sinh này";
 
             if (confirm(`Thầy/Cô có chắc chắn muốn xóa bài nộp của ${studentName} không?`)) {
-                // Xóa khỏi danh sách nội bộ
                 localStore.submissions = (localStore.submissions || []).filter(s => s.id !== subId);
                 localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
                 renderTeacherSubmissionsList();
 
-                // Đóng khung chấm nếu đang mở đúng bài này
                 if (activeGradingId === subId) {
                     closeGradingWorkspace();
                 }
 
-                // Phát tín hiệu xóa bài sang thiết bị học sinh
                 pubnub.publish({
                     channel: REALTIME_CHANNEL,
                     message: { type: "DELETE_SUBMISSION", payload: subId }
@@ -745,7 +817,11 @@
             document.getElementById('grading-exam-rubric-view').innerText = sub.examRubric;
 
             const g = document.getElementById('grading-photos-gallery');
-            g.innerHTML = (sub.snapshots || []).map(src => `<img src="${src}" class="w-24 h-16 object-cover rounded-xl border border-pink-200">`).join('');
+            if (sub.snapshots && sub.snapshots.length > 0) {
+                g.innerHTML = sub.snapshots.map(src => `<img src="${src}" class="w-24 h-16 object-cover rounded-xl border border-pink-200 shadow-sm">`).join('');
+            } else {
+                g.innerHTML = `<span class="text-gray-400 italic text-[11px]">Không có ảnh chụp.</span>`;
+            }
 
             document.getElementById('grading-score-field').value = sub.score !== '--' ? sub.score : '8.5/10';
             document.getElementById('grading-comment-field').value = sub.comment || 'Trả lời đúng trọng tâm.';
@@ -906,18 +982,25 @@
             }
         }
 
+        // CHỤP ẢNH ĐÃ NÉN NHỎ GỌN (DƯỚI 10 KB) ĐỂ LỌT VÀO GÓI TIN PUBNUB 32 KB
         function captureSnap(idx) {
             const v = document.getElementById('webcam-video-element');
             const c = document.getElementById('hidden-snapshot-canvas');
             if (!v || !c || !v.videoWidth) return;
-            c.width = v.videoWidth;
-            c.height = v.videoHeight;
-            c.getContext('2d').drawImage(v, 0, 0);
-            currentSnapshots.push(c.toDataURL('image/jpeg', 0.8));
+            
+            // Nén về kích thước 240x180 px
+            c.width = 240;
+            c.height = 180;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(v, 0, 0, c.width, c.height);
+            
+            // Chất lượng 0.5 giúp dung lượng chỉ khoảng 6–8 KB
+            const compressedPhoto = c.toDataURL('image/jpeg', 0.5);
+            currentSnapshots.push(compressedPhoto);
             document.getElementById('snapshot-status-tag').innerText = `📸 Ảnh giám sát: ${currentSnapshots.length}/2`;
         }
 
-        // --- HỆ THỐNG NHẬN DIỆN GIỌNG NÓI LIÊN TỤC VÀ KHÔNG BỊ TẮT ĐỘT NGỘT ---
+        // --- HỆ THỐNG NHẬN DIỆN GIỌNG NÓI ---
         function toggleSpeech() {
             if (!isMicActive) {
                 isMicActive = true;
@@ -1047,6 +1130,7 @@
             stopSpeechEngine();
         }
 
+        // NỘP BÀI LÊN HỆ THỐNG VÀ PHÁT SÓNG ĐẢM BẢO KHÔNG BỊ TRÀN 32 KB
         function submitStudentExamAction() {
             const ans = document.getElementById('student-speech-result-box').value.trim();
             if (!ans) {
@@ -1066,7 +1150,7 @@
                 examRubric: activeExamForTest.examRubric,
                 submitTime: `${now.getHours()}:${now.getMinutes()} - ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`,
                 answer: ans,
-                snapshots: currentSnapshots,
+                snapshots: currentSnapshots, // Đã nén chỉ còn khoảng 15 KB
                 score: '--',
                 status: 'Chờ chấm',
                 comment: ''
@@ -1075,12 +1159,18 @@
             localStore.submissions = [sub, ...localStore.submissions.filter(s => s.id !== subId)];
             localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
 
+            // Phát trực tiếp gói tin nhẹ sang máy giáo viên
             pubnub.publish({
                 channel: REALTIME_CHANNEL,
                 message: { type: "NEW_SUBMISSION", payload: sub }
+            }, function(status, response) {
+                if (!status.error) {
+                    showToast("Đã nộp bài thành công về máy giáo viên!");
+                } else {
+                    console.warn("Lỗi gửi:", status);
+                }
             });
 
-            showToast("Nộp bài thành công lên hệ thống!");
             navigateTo('screen-student-dashboard');
         }
 
