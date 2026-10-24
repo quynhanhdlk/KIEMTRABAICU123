@@ -8,6 +8,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Ẩn hoàn toàn header/footer mặc định của Streamlit
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -23,4 +24,4 @@ try:
         html_code = f.read()
     components.html(html_code, height=980, scrolling=True)
 except FileNotFoundError:
-    st.error("Không tìm thấy tệp index.html trong thư mục gốc!")
+    st.error("Không tìm thấy tệp index.html trong thư mục gốc của repository!")
