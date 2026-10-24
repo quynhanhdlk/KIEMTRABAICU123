@@ -63,7 +63,7 @@
                     </span>
                     <span id="perm-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full">Chờ cấp quyền</span>
                 </div>
-                <p class="text-[11px] text-gray-600 leading-relaxed">
+                <p id="perm-desc" class="text-[11px] text-gray-600 leading-relaxed">
                     Bấm nút bên dưới và chọn <b>"Cho phép"</b> để bật camera phục vụ giám sát khi làm bài.
                 </p>
                 <div class="pt-1">
@@ -125,14 +125,13 @@
             </div>
         </div>
 
-        <!-- MÀN HÌNH RA ĐỀ (CÓ NÚT XEM, SỬA, XÓA ĐỀ) -->
+        <!-- MÀN HÌNH RA ĐỀ -->
         <div id="screen-teacher-create-exam" class="hidden space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Ra Đề Kiểm Tra Bài Cũ</h2>
                 <button type="button" onclick="navigateTo('screen-teacher-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Đóng</button>
             </div>
             
-            <!-- Danh sách đề đã ra -->
             <div class="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
                 <div class="flex justify-between items-center mb-1.5">
                     <h3 class="font-bold text-pink-700 text-xs uppercase tracking-wider">Danh sách đề đã ra</h3>
@@ -141,7 +140,6 @@
                 <div id="created-exams-list" class="bg-white rounded-xl p-2 text-xs text-gray-600 space-y-2 max-h-40 overflow-y-auto border border-pink-100"></div>
             </div>
 
-            <!-- Biểu mẫu nhập / chỉnh sửa đề -->
             <div class="space-y-2.5">
                 <input type="hidden" id="editing-exam-id" value="">
                 
@@ -179,7 +177,7 @@
             </div>
         </div>
 
-        <!-- MÀN HÌNH CHẤM BÀI CỦA GIÁO VIÊN -->
+        <!-- MÀN HÌNH CHẤM BÀI CỦA GIÁO VIÊN (ĐÃ BỔ SUNG NÚT XÓA BÀI) -->
         <div id="screen-teacher-grade-exam" class="hidden space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>🤖</span> Chấm Bài & Quản Lý Kết Quả</h2>
@@ -191,7 +189,7 @@
                     <h3 class="font-bold text-pink-700 text-xs uppercase tracking-wider">Danh sách bài nộp từ học sinh</h3>
                     <span id="submission-count-badge" class="text-[11px] bg-pink-200 text-pink-800 px-2 py-0.5 rounded-full font-bold">0 bài</span>
                 </div>
-                <div id="submissions-list-container" class="bg-white rounded-xl p-2 text-xs space-y-2 max-h-36 overflow-y-auto border border-pink-100"></div>
+                <div id="submissions-list-container" class="bg-white rounded-xl p-2 text-xs space-y-2 max-h-48 overflow-y-auto border border-pink-100"></div>
             </div>
 
             <!-- Khung chi tiết chấm bài -->
@@ -424,6 +422,11 @@
                     localStore.submissions = [sub, ...localStore.submissions.filter(x => x.id !== sub.id)];
                     localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
                     refreshAllScreens();
+                } else if (msg.type === "DELETE_SUBMISSION") {
+                    const subId = msg.payload;
+                    localStore.submissions = localStore.submissions.filter(x => x.id !== subId);
+                    localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+                    refreshAllScreens();
                 } else if (msg.type === "UPDATE_GRADE") {
                     const sub = msg.payload;
                     const idx = localStore.submissions.findIndex(x => x.id === sub.id);
@@ -550,7 +553,6 @@
             else input.value = v;
         }
 
-        // HÀM LƯU / CẬP NHẬT ĐỀ VÀ PHÁT SÓNG
         function saveAndBroadcastExam() {
             const rawClass = document.getElementById('exam-class').value.trim();
             const className = cleanClassName(rawClass);
@@ -575,7 +577,6 @@
                 examRubric: rubric || "Đúng trọng tâm"
             };
 
-            // Cập nhật mảng đề thi cục bộ
             localStore.exams = [examObj, ...localStore.exams.filter(e => e.id !== examId)];
             localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
             renderCreatedExamsTable();
@@ -583,14 +584,12 @@
             clearExamForm();
             showToast(editId ? "Đã cập nhật đề thành công!" : "Đã lưu đề mới và truyền đến học sinh!");
 
-            // Phát sóng đề mới / đề vừa cập nhật tới tất cả các máy học sinh
             pubnub.publish({
                 channel: REALTIME_CHANNEL,
                 message: { type: "NEW_EXAM", payload: examObj }
             });
         }
 
-        // HIỂN THỊ DANH SÁCH ĐỀ KÈM 3 NÚT: XEM, SỬA, XÓA
         function renderCreatedExamsTable() {
             const list = localStore.exams || [];
             const container = document.getElementById('created-exams-list');
@@ -620,7 +619,6 @@
             `).join('');
         }
 
-        // 1. CHỨC NĂNG XEM CHI TIẾT ĐỀ
         function viewExamDetail(examId) {
             const exam = (localStore.exams || []).find(x => x.id === examId);
             if (!exam) return;
@@ -633,7 +631,6 @@
             );
         }
 
-        // 2. CHỨC NĂNG TẢI LẠI ĐỀ ĐỂ SỬA
         function loadExamForEdit(examId) {
             const exam = (localStore.exams || []).find(x => x.id === examId);
             if (!exam) return;
@@ -650,7 +647,6 @@
             showToast("Đã tải đề vào khung soạn thảo để chỉnh sửa!");
         }
 
-        // 3. CHỨC NĂNG XÓA ĐỀ
         function deleteExamDirectly(examId) {
             const exam = (localStore.exams || []).find(x => x.id === examId);
             const title = exam ? exam.examTitle : "đề kiểm tra này";
@@ -660,12 +656,10 @@
                 localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
                 renderCreatedExamsTable();
 
-                // Nếu đang chỉnh sửa đúng đề vừa xóa thì dọn form
                 if (document.getElementById('editing-exam-id').value === examId) {
                     clearExamForm();
                 }
 
-                // Phát tín hiệu xóa đề sang tất cả máy học sinh
                 pubnub.publish({
                     channel: REALTIME_CHANNEL,
                     message: { type: "DELETE_EXAM", payload: examId }
@@ -675,7 +669,6 @@
             }
         }
 
-        // XÓA TRẮNG FORM SOẠN ĐỀ
         function clearExamForm() {
             document.getElementById('editing-exam-id').value = '';
             document.getElementById('exam-class').value = '';
@@ -687,6 +680,7 @@
             document.getElementById('btn-save-exam-icon').innerText = "📡";
         }
 
+        // DANH SÁCH BÀI HỌC SINH NỘP (CÓ NÚT CHẤM VÀ NÚT XÓA BÀI)
         function renderTeacherSubmissionsList() {
             const list = localStore.submissions || [];
             const container = document.getElementById('submissions-list-container');
@@ -696,14 +690,47 @@
                 return;
             }
             container.innerHTML = list.map(s => `
-                <div class="border border-pink-100 rounded-xl p-2.5 flex justify-between items-center">
+                <div class="border border-pink-100 rounded-xl p-2.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hover:bg-pink-50/40 transition">
                     <div>
                         <div class="font-bold text-gray-800">${s.studentName} <span class="text-[10px] font-bold ${s.status === 'Đã duyệt' ? 'text-green-600' : 'text-amber-600'}">(${s.status})</span></div>
-                        <div class="text-[10px] text-gray-500">Lớp: <b>${s.className}</b> | Điểm: <b>${s.score}</b></div>
+                        <div class="text-[10px] text-gray-500">Lớp: <b>${s.className}</b> | Đề: <b>${s.examTitle}</b> | Điểm: <b>${s.score}</b></div>
                     </div>
-                    <button type="button" onclick="openGradingItem('${s.id}')" class="px-3 py-1 bg-pink-500 text-white rounded-xl text-xs font-bold">Chấm</button>
+                    <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                        <button type="button" onclick="openGradingItem('${s.id}')" class="px-3 py-1 bg-pink-500 hover:bg-pink-600 text-white rounded-lg text-xs font-bold transition">
+                            Chấm
+                        </button>
+                        <button type="button" onclick="deleteStudentSubmission('${s.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg text-xs border border-rose-200 transition" title="Xóa bài làm này">
+                            🗑️ Xóa bài
+                        </button>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        // HÀM XÓA BÀI NỘP CỦA HỌC SINH
+        function deleteStudentSubmission(subId) {
+            const sub = (localStore.submissions || []).find(s => s.id === subId);
+            const studentName = sub ? sub.studentName : "học sinh này";
+
+            if (confirm(`Thầy/Cô có chắc chắn muốn xóa bài nộp của ${studentName} không?`)) {
+                // Xóa khỏi danh sách nội bộ
+                localStore.submissions = (localStore.submissions || []).filter(s => s.id !== subId);
+                localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+                renderTeacherSubmissionsList();
+
+                // Đóng khung chấm nếu đang mở đúng bài này
+                if (activeGradingId === subId) {
+                    closeGradingWorkspace();
+                }
+
+                // Phát tín hiệu xóa bài sang thiết bị học sinh
+                pubnub.publish({
+                    channel: REALTIME_CHANNEL,
+                    message: { type: "DELETE_SUBMISSION", payload: subId }
+                });
+
+                showToast(`Đã xóa bài của ${studentName} thành công!`);
+            }
         }
 
         function openGradingItem(subId) {
@@ -725,6 +752,7 @@
         }
 
         function closeGradingWorkspace() {
+            activeGradingId = null;
             document.getElementById('grading-workspace').classList.add('hidden');
         }
 
@@ -862,7 +890,7 @@
                 if (!globalRealStream || !globalRealStream.active) {
                     globalRealStream = await navigator.mediaDevices.getUserMedia({
                         video: { facingMode: "user" },
-                        audio: false // CHỈ LẤY HÌNH, TRÁNH KHÓA MICRO
+                        audio: false
                     });
                 }
                 v.srcObject = globalRealStream;
