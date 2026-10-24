@@ -274,7 +274,7 @@
 
         <!-- BÀN LÀM VIỆC HỌC SINH -->
         <div id="screen-student-dashboard" class="hidden space-y-4">
-            <div class="bg-gradient-r from-pink-50 to-rose-50 p-3.5 rounded-2xl border border-pink-200 flex justify-between items-center">
+            <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-3.5 rounded-2xl border border-pink-200 flex justify-between items-center">
                 <div>
                     <h3 class="font-bold text-pink-700 text-sm sm:text-base" id="student-card-name">Học sinh: --</h3>
                     <p class="text-xs text-gray-500" id="student-card-class">Lớp: --</p>
@@ -832,7 +832,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT: TỰ ĐỘNG THÍCH ỨNG MODEL VÀ TỰ LẤY API KEY TỪ SECRETS
+        // AI CHẤM VÀ NHẬN XÉT: TỰ ĐỘNG KHÁM PHÁ MODEL CHUẨN XÁC 100%
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -869,7 +869,7 @@
             btn.innerHTML = `<span class="animate-spin">🔄</span> Gemini đang đọc Barem và chấm bài...`;
             btn.disabled = true;
 
-            const promptText = `Bạn là một trợ lý AI đồng hành cùng giáo viên, có tư duy sư phạm sâu sắc, ngôn từ tinh tế, ấm áp và gần gũi như một người thầy/cô đang trực tiếp nhận xét học trò của mình.
+            const promptText = `Bạn là một giáo viên bộ môn có tâm, giàu kinh nghiệm sư phạm, ngôn từ ấm áp, gần gũi như một người thầy/cô đang trực tiếp chấm và nhận xét học sinh.
 
 THÔNG TIN BÀI KIỂM TRA:
 - Câu hỏi / Đề thi: ${examQuestion}
@@ -883,8 +883,8 @@ ${rubricContent || "Đánh giá mức độ hiểu bài và nắm vững kiến 
 
 NGUYÊN TẮC THỰC HIỆN:
 1. Xem nội dung Barem trên là CHỈ ĐẠO DUY NHẤT VÀ TỐI CAO:
-   - Giáo viên quy định thang điểm nào (10, 100, chữ, hay thang điểm con cho từng ý) -> Chấm đúng thang điểm đó.
-   - Giáo viên yêu cầu nhận xét ra sao (khen ngợi, khắt khe, bắt lỗi, hay động viên) -> Viết đúng giọng điệu đó.
+   - Giáo viên quy định thang điểm nào -> Chấm đúng thang điểm đó.
+   - Giáo viên yêu cầu nhận xét ra sao -> Viết đúng giọng điệu đó.
 2. Hiểu bản chất câu trả lời: Học sinh trả lời bằng giọng nói qua micro nên văn phong có thể mang tính khẩu ngữ. Hãy hiểu bản chất ý đúng thay vì bắt bẻ từng từ.
 3. Lời nhận xét: Viết thật mượt mà, chân thật, xưng hô tự nhiên (thầy/cô - em), khen ngợi ý đúng cụ thể, chỉ rõ ý còn thiếu theo barem và khích lệ học sinh.
 
@@ -892,36 +892,55 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
 {"score": "Điền điểm số đúng theo barem", "comment": "Lời nhận xét chi tiết, mượt mà của giáo viên ở đây"}`;
 
             try {
-                // Danh sách các mô hình chuẩn quốc tế, tự động chạy vòng lặp bắt đúng model khả dụng
-                const candidateModels = [
-                    "gemini-2.0-flash",
-                    "gemini-2.5-flash",
-                    "gemini-2.5-flash-latest"
-                ];
+                // Bước 1: Danh sách các model chính thức (không dùng đuôi -latest)
+                let modelList = ["gemini-2.5-flash", "gemini-2.0-flash"];
 
+                // Thử gửi trực tiếp
                 let response = null;
                 let lastErr = "";
 
-                for (const modelName of candidateModels) {
+                const payload = {
+                    contents: [{ parts: [{ text: promptText }] }],
+                    generationConfig: {
+                        temperature: 0.35,
+                        responseMimeType: "application/json"
+                    }
+                };
+
+                for (const m of modelList) {
                     try {
-                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: promptText }] }],
-                                generationConfig: {
-                                    temperature: 0.35,
-                                    responseMimeType: "application/json"
-                                }
-                            })
+                            body: JSON.stringify(payload)
                         });
-
                         if (res.ok) {
                             response = res;
-                            break; // Đã tìm thấy model được phép hoạt động
-                        } else {
-                            const errData = await res.json().catch(() => ({}));
-                            lastErr = errData?.error?.message || ("Mã lỗi HTTP: " + res.status);
+                            break;
+                        }
+                    } catch (e) {}
+                }
+
+                // Bước 2: Nếu chưa thành công, tự động truy vấn danh sách Model thực tế của chính API Key
+                if (!response) {
+                    try {
+                        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                        if (listRes.ok) {
+                            const listData = await listRes.json();
+                            const availableModels = (listData.models || [])
+                                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"))
+                                .map(m => m.name.replace("models/", ""));
+                            
+                            // Ưu tiên chọn model flash
+                            const chosen = availableModels.find(m => m.includes("flash")) || availableModels[0];
+                            if (chosen) {
+                                const finalRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${chosen}:generateContent?key=${apiKey}`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(payload)
+                                });
+                                if (finalRes.ok) response = finalRes;
+                            }
                         }
                     } catch (e) {
                         lastErr = e.message;
@@ -929,7 +948,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
                 }
 
                 if (!response) {
-                    throw new Error(lastErr || "Không thể kết nối đến máy chủ Google AI.");
+                    throw new Error(lastErr || "Không thể tìm thấy model tương thích với API Key của bạn.");
                 }
 
                 const data = await response.json();
