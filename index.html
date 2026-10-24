@@ -125,14 +125,13 @@
             </div>
         </div>
 
-        <!-- MÀN HÌNH RA ĐỀ (CÓ NÚT XEM, SỬA, XÓA ĐỀ) -->
+        <!-- MÀN HÌNH RA ĐỀ -->
         <div id="screen-teacher-create-exam" class="hidden space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Ra Đề Kiểm Tra Bài Cũ</h2>
                 <button type="button" onclick="navigateTo('screen-teacher-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Đóng</button>
             </div>
             
-            <!-- Danh sách đề đã ra -->
             <div class="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
                 <div class="flex justify-between items-center mb-1.5">
                     <h3 class="font-bold text-pink-700 text-xs uppercase tracking-wider">Danh sách đề đã ra</h3>
@@ -141,7 +140,6 @@
                 <div id="created-exams-list" class="bg-white rounded-xl p-2 text-xs text-gray-600 space-y-2 max-h-40 overflow-y-auto border border-pink-100"></div>
             </div>
 
-            <!-- Biểu mẫu nhập / chỉnh sửa đề -->
             <div class="space-y-2.5">
                 <input type="hidden" id="editing-exam-id" value="">
                 
@@ -157,7 +155,7 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Tiêu đề bài kiểm tra</label>
-                    <input type="text" id="exam-title" placeholder="VD: Kiểm tra bài cũ..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white">
+                    <input type="text" id="exam-title" placeholder="VD: Kiểm tra bài cũ Hoá học..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white">
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Nội dung câu hỏi đề bài</label>
@@ -372,7 +370,7 @@
 
     </div>
 
-    <!-- MODAL XEM CHI TIẾT ĐỀ THI ĐẦY ĐỦ (KHÔNG BỊ CẮT BAREM) -->
+    <!-- MODAL XEM CHI TIẾT ĐỀ THI ĐẦY ĐỦ -->
     <div id="modal-view-exam" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="bg-white w-full max-w-lg rounded-3xl p-5 sm:p-6 shadow-2xl border border-pink-200 space-y-4 max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-pink-100 pb-3">
@@ -513,7 +511,7 @@
                             if (item && item.id) map.set(item.id, item);
                         });
                         localStore.submissions = Array.from(map.values());
-                        localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+                        localStorage.setItem('kiemtra_submissions', JSON.stringify(localStore.submissions));
                         refreshAllScreens();
                     }
                 }
@@ -832,7 +830,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT: TỰ ĐỘNG KHÁM PHÁ MODEL CHUẨN XÁC 100%
+        // AI CHẤM VÀ NHẬN XÉT: KẾT NỐI TRỰC TIẾP CHUẨN XÁC, BÁO LỖI MINH BẠCH
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -852,10 +850,10 @@
 
             // Tự động nhận API Key tiêm vào từ app.py hoặc lấy từ bộ nhớ trình duyệt
             let injectedKey = "{{GEMINI_API_KEY}}";
-            let apiKey = (injectedKey && !injectedKey.includes("{{")) ? injectedKey : (localStorage.getItem('gemini_api_key_stored') || '');
+            let apiKey = (injectedKey && !injectedKey.includes("{{")) ? injectedKey.trim() : (localStorage.getItem('gemini_api_key_stored') || '').trim();
 
             if (!apiKey) {
-                apiKey = prompt("Vui lòng dán Gemini API Key để AI chấm trực tiếp (lấy tại https://aistudio.google.com/app/apikey):");
+                apiKey = prompt("Vui lòng dán Gemini API Key của bạn (bắt đầu bằng AIzaSy...):");
                 if (apiKey) {
                     apiKey = apiKey.trim();
                     localStorage.setItem('gemini_api_key_stored', apiKey);
@@ -869,10 +867,10 @@
             btn.innerHTML = `<span class="animate-spin">🔄</span> Gemini đang đọc Barem và chấm bài...`;
             btn.disabled = true;
 
-            const promptText = `Bạn là một giáo viên bộ môn có tâm, giàu kinh nghiệm sư phạm, ngôn từ ấm áp, gần gũi như một người thầy/cô đang trực tiếp chấm và nhận xét học sinh.
+            const promptText = `Bạn là một giáo viên có tâm, giàu kinh nghiệm sư phạm, ngôn từ ấm áp, gần gũi như một người thầy/cô đang trực tiếp chấm bài và nhận xét học sinh.
 
 THÔNG TIN BÀI KIỂM TRA:
-- Câu hỏi / Đề thi: ${examQuestion}
+- Đề bài: ${examQuestion}
 - BÀI LÀM CỦA HỌC SINH (${studentName}):
 "${studentAnswer}"
 
@@ -881,91 +879,60 @@ THÔNG TIN BÀI KIỂM TRA:
 ${rubricContent || "Đánh giá mức độ hiểu bài và nắm vững kiến thức."}
 """
 
-NGUYÊN TẮC THỰC HIỆN:
-1. Xem nội dung Barem trên là CHỈ ĐẠO DUY NHẤT VÀ TỐI CAO:
-   - Giáo viên quy định thang điểm nào -> Chấm đúng thang điểm đó.
-   - Giáo viên yêu cầu nhận xét ra sao -> Viết đúng giọng điệu đó.
-2. Hiểu bản chất câu trả lời: Học sinh trả lời bằng giọng nói qua micro nên văn phong có thể mang tính khẩu ngữ. Hãy hiểu bản chất ý đúng thay vì bắt bẻ từng từ.
-3. Lời nhận xét: Viết thật mượt mà, chân thật, xưng hô tự nhiên (thầy/cô - em), khen ngợi ý đúng cụ thể, chỉ rõ ý còn thiếu theo barem và khích lệ học sinh.
+NGUYÊN TẮC:
+1. Tuân thủ 100% barem về thang điểm và yêu cầu nhận xét.
+2. Học sinh nói qua micro nên hiểu bản chất ý đúng thay vì bắt bẻ từng từ.
+3. Nhận xét chân thật, xưng hô tự nhiên (thầy/cô - em), khen ngợi cụ thể và dặn dò ân cần.
 
-TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdown \`\`\`json, không thêm chữ nào bên ngoài):
-{"score": "Điền điểm số đúng theo barem", "comment": "Lời nhận xét chi tiết, mượt mà của giáo viên ở đây"}`;
+TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdown \`\`\`json, không thêm chữ bên ngoài):
+{"score": "Điền điểm số", "comment": "Lời nhận xét của giáo viên"}`;
 
             try {
-                // Bước 1: Danh sách các model chính thức (không dùng đuôi -latest)
-                let modelList = ["gemini-2.5-flash", "gemini-2.0-flash"];
+                // Sử dụng model chuẩn tương thích toàn cầu
+                const targetModel = "gemini-2.5-flash";
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
 
-                // Thử gửi trực tiếp
-                let response = null;
-                let lastErr = "";
-
-                const payload = {
-                    contents: [{ parts: [{ text: promptText }] }],
-                    generationConfig: {
-                        temperature: 0.35,
-                        responseMimeType: "application/json"
-                    }
-                };
-
-                for (const m of modelList) {
-                    try {
-                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(payload)
-                        });
-                        if (res.ok) {
-                            response = res;
-                            break;
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: promptText }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.35,
+                            responseMimeType: "application/json"
                         }
-                    } catch (e) {}
-                }
+                    })
+                });
 
-                // Bước 2: Nếu chưa thành công, tự động truy vấn danh sách Model thực tế của chính API Key
-                if (!response) {
-                    try {
-                        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-                        if (listRes.ok) {
-                            const listData = await listRes.json();
-                            const availableModels = (listData.models || [])
-                                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"))
-                                .map(m => m.name.replace("models/", ""));
-                            
-                            // Ưu tiên chọn model flash
-                            const chosen = availableModels.find(m => m.includes("flash")) || availableModels[0];
-                            if (chosen) {
-                                const finalRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${chosen}:generateContent?key=${apiKey}`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify(payload)
-                                });
-                                if (finalRes.ok) response = finalRes;
-                            }
-                        }
-                    } catch (e) {
-                        lastErr = e.message;
-                    }
-                }
-
-                if (!response) {
-                    throw new Error(lastErr || "Không thể tìm thấy model tương thích với API Key của bạn.");
+                if (!response.ok) {
+                    const errJson = await response.json().catch(() => ({}));
+                    const detailMsg = errJson?.error?.message || `HTTP ${response.status} (${response.statusText})`;
+                    throw new Error(detailMsg);
                 }
 
                 const data = await response.json();
                 const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                
+
                 let cleanJson = rawOutput.replace(/```json/gi, '').replace(/```/g, '').trim();
                 const result = JSON.parse(cleanJson);
 
                 if (result.score !== undefined && result.comment) {
                     document.getElementById('grading-score-field').value = result.score;
                     document.getElementById('grading-comment-field').value = result.comment;
-                    showToast("Gemini AI đã chấm xong theo đúng Barem!");
+                    showToast("Gemini AI đã hoàn thành chấm bài!");
                 } else {
-                    throw new Error("Dữ liệu JSON trả về thiếu trường score hoặc comment.");
+                    throw new Error("Dữ liệu phản hồi thiếu trường score hoặc comment.");
                 }
             } catch (error) {
-                console.error("Lỗi Gemini:", error);
+                console.error("Chi tiết lỗi Gemini:", error);
+                
+                // Nếu báo lỗi API key không hợp lệ, xóa cache để lần sau cho phép nhập lại key mới
+                if (error.message.includes("API key not valid") || error.message.includes("API_KEY_INVALID")) {
+                    localStorage.removeItem('gemini_api_key_stored');
+                }
+                
                 alert("Lỗi khi kết nối với Gemini AI:\n" + error.message + "\n\nVui lòng kiểm tra lại API Key hoặc mạng internet.");
             } finally {
                 btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem`;
