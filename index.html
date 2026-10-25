@@ -830,7 +830,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT: MODEL GEMINI-3.8-FLASH DUY NHẤT THEO QUY ĐỊNH GOOGLE
+        // AI CHẤM VÀ NHẬN XÉT: TỰ ĐỘNG LẤY API KEY TỪ REQUIREMENTS.TXT QUA APP.PY
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -853,7 +853,7 @@
             let apiKey = (injectedKey && !injectedKey.includes("{{")) ? injectedKey.trim() : (localStorage.getItem('gemini_api_key_stored') || '').trim();
 
             if (!apiKey) {
-                apiKey = prompt("Vui lòng dán Gemini API Key của bạn (bắt đầu bằng AIzaSy...):");
+                apiKey = prompt("Chưa tìm thấy mã API trong requirements.txt. Vui lòng dán trực tiếp mã API Key (AIzaSy...):");
                 if (apiKey) {
                     apiKey = apiKey.trim();
                     localStorage.setItem('gemini_api_key_stored', apiKey);
@@ -888,12 +888,17 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
 {"score": "Điền điểm số", "comment": "Lời nhận xét của giáo viên"}`;
 
             try {
-                // GỌI DUY NHẤT MODEL GEMINI-3.8-FLASH TRÊN CỔNG CHÍNH THỨC CỦA GOOGLE
-                const url = `https://generativelanguage.googleapis.com/v1/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+                // Sử dụng model chuẩn tương thích toàn cầu
+                const targetModel = "gemini-2.5-flash";
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 giây tối đa để chống quay mãi
 
                 const response = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         contents: [{
                             parts: [{ text: promptText }]
@@ -904,6 +909,8 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
                         }
                     })
                 });
+
+                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     const errData = await response.json().catch(() => ({}));
@@ -927,11 +934,11 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
             } catch (error) {
                 console.error("Chi tiết lỗi Gemini:", error);
                 
-                if (error.message.includes("API key not valid") || error.message.includes("API_KEY_INVALID")) {
-                    localStorage.removeItem('gemini_api_key_stored');
+                if (error.name === 'AbortError') {
+                    alert("Kết nối quá thời gian chờ (hơn 20s). Vui lòng kiểm tra lại đường truyền mạng!");
+                } else {
+                    alert("Lỗi khi kết nối với Gemini AI:\n" + error.message + "\n\nVui lòng kiểm tra lại API Key hoặc mạng internet.");
                 }
-                
-                alert("Lỗi khi kết nối với Gemini AI:\n" + error.message + "\n\nVui lòng kiểm tra lại API Key hoặc mạng internet.");
             } finally {
                 btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem`;
                 btn.disabled = false;
