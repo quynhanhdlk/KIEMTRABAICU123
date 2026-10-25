@@ -23,18 +23,18 @@ st.markdown("""
 api_key = ""
 try:
     if "GEMINI_API_KEY" in st.secrets:
-        api_key = st.secrets["GEMINI_API_KEY"]
+        api_key = str(st.secrets["GEMINI_API_KEY"]).strip()
 except Exception:
     pass
 
 if not api_key:
-    api_key = os.environ.get("GEMINI_API_KEY", "")
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
 
 try:
     with open("index.html", "r", encoding="utf-8") as f:
         html_code = f.read()
     
-    # Nạp mã API Key vào file HTML nếu có
+    # Nạp mã API Key vào file HTML
     html_code = html_code.replace("{{GEMINI_API_KEY}}", api_key)
     components.html(html_code, height=980, scrolling=True)
 except FileNotFoundError:
