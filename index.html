@@ -830,7 +830,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT: MODEL GEMINI-3.8-FLASH MỚI NHẤT
+        // AI CHẤM VÀ NHẬN XÉT: TỰ ĐỘNG THÍCH ỨNG MODEL VÀ ENDPOINT V1 CHÍNH THỨC
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -848,7 +848,7 @@
                 return;
             }
 
-            // Tự động nhận API Key từ app.py hoặc bộ nhớ trình duyệt
+            // Tự động nhận API Key tiêm vào từ app.py hoặc lấy từ bộ nhớ trình duyệt
             let injectedKey = "{{GEMINI_API_KEY}}";
             let apiKey = (injectedKey && !injectedKey.includes("{{")) ? injectedKey.trim() : (localStorage.getItem('gemini_api_key_stored') || '').trim();
 
@@ -888,28 +888,49 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
 {"score": "Điền điểm số", "comment": "Lời nhận xét của giáo viên"}`;
 
             try {
-                // SỬ DỤNG CHÍNH XÁC MODEL GEMINI-3.8-FLASH THEO YÊU CẦU MỚI CỦA GOOGLE
-                const targetModel = "gemini-3.8-flash";
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
+                // Danh sách URL endpoint theo thứ tự ưu tiên cao nhất của Google hiện tại
+                const apiEndpoints = [
+                    `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+                    `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+                    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`
+                ];
 
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: promptText }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.35,
-                            responseMimeType: "application/json"
-                        }
-                    })
+                let response = null;
+                let lastErrorMessage = "";
+
+                const requestBody = JSON.stringify({
+                    contents: [{
+                        parts: [{ text: promptText }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.35,
+                        responseMimeType: "application/json"
+                    }
                 });
 
-                if (!response.ok) {
-                    const errJson = await response.json().catch(() => ({}));
-                    const detailMsg = errJson?.error?.message || `HTTP ${response.status} (${response.statusText})`;
-                    throw new Error(detailMsg);
+                for (const url of apiEndpoints) {
+                    try {
+                        const res = await fetch(url, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: requestBody
+                        });
+
+                        if (res.ok) {
+                            response = res;
+                            break; // Đã tìm thấy endpoint phản hồi thành công
+                        } else {
+                            const errData = await res.json().catch(() => ({}));
+                            lastErrorMessage = errData?.error?.message || `Lỗi HTTP ${res.status}`;
+                        }
+                    } catch (netErr) {
+                        lastErrorMessage = netErr.message;
+                    }
+                }
+
+                if (!response) {
+                    throw new Error(lastErrorMessage || "Không thể kết nối đến máy chủ Google Gemini.");
                 }
 
                 const data = await response.json();
@@ -928,6 +949,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
             } catch (error) {
                 console.error("Chi tiết lỗi Gemini:", error);
                 
+                // Nếu báo key sai định dạng thì xóa bỏ cache để cho nhập lại
                 if (error.message.includes("API key not valid") || error.message.includes("API_KEY_INVALID")) {
                     localStorage.removeItem('gemini_api_key_stored');
                 }
