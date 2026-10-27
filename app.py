@@ -20,21 +20,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 1. Trích xuất tự động API Key từ file requirements.txt
+# 1. Tự động tìm và lấy API Key từ file requirements.txt
 api_key = ""
-
 if os.path.exists("requirements.txt"):
     try:
         with open("requirements.txt", "r", encoding="utf-8") as rf:
             content = rf.read()
-            # Tìm chuỗi API Key chuẩn của Google bắt đầu bằng AIzaSy
             match = re.search(r'AIzaSy[A-Za-z0-9_-]{33}', content)
             if match:
                 api_key = match.group(0)
     except Exception as e:
         print("Lỗi đọc requirements.txt:", e)
 
-# Nếu requirements.txt chưa có thì kiểm tra tiếp trong Secrets
+# Nếu requirements.txt chưa có thì kiểm tra tiếp trong Streamlit Secrets
 if not api_key:
     try:
         if "GEMINI_API_KEY" in st.secrets:
@@ -50,7 +48,6 @@ try:
     with open("index.html", "r", encoding="utf-8") as f:
         html_code = f.read()
     
-    # Tiêm mã API Key thực tế vào
     html_code = html_code.replace("{{GEMINI_API_KEY}}", api_key)
     components.html(html_code, height=980, scrolling=True)
 except FileNotFoundError:
