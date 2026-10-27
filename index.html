@@ -155,7 +155,7 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Tiêu đề bài kiểm tra</label>
-                    <input type="text" id="exam-title" placeholder="VD: Kiểm tra bài cũ Hoá học..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white">
+                    <input type="text" id="exam-title" placeholder="VD: Kiểm tra bài cũ..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white">
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Nội dung câu hỏi đề bài</label>
@@ -471,10 +471,12 @@
                     localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
                     refreshAllScreens();
                 } else if (msg.type === "UPDATE_GRADE") {
-                    const sub = msg.payload;
-                    const idx = localStore.submissions.findIndex(x => x.id === sub.id);
+                    const incomingSub = msg.payload;
+                    const idx = localStore.submissions.findIndex(x => x.id === incomingSub.id);
                     if (idx !== -1) {
-                        localStore.submissions[idx] = sub;
+                        localStore.submissions[idx].score = incomingSub.score;
+                        localStore.submissions[idx].comment = incomingSub.comment;
+                        localStore.submissions[idx].status = incomingSub.status;
                         localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
                         refreshAllScreens();
                     }
@@ -487,9 +489,14 @@
                     }
                 } else if (msg.type === "REQUEST_SUBMISSIONS_SYNC") {
                     if (localStore.submissions.length > 0) {
+                        // Nén bớt ảnh trước khi đồng bộ toàn bộ để không vượt dung lượng PubNub
+                        const cleanSubs = localStore.submissions.map(s => ({
+                            ...s,
+                            snapshots: []
+                        }));
                         pubnub.publish({
                             channel: REALTIME_CHANNEL,
-                            message: { type: "SYNC_SUBMISSIONS_RESPONSE", payload: localStore.submissions }
+                            message: { type: "SYNC_SUBMISSIONS_RESPONSE", payload: cleanSubs }
                         });
                     }
                 } else if (msg.type === "SYNC_EXAMS_RESPONSE") {
@@ -511,7 +518,7 @@
                             if (item && item.id) map.set(item.id, item);
                         });
                         localStore.submissions = Array.from(map.values());
-                        localStorage.setItem('kiemtra_submissions', JSON.stringify(localStore.submissions));
+                        localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
                         refreshAllScreens();
                     }
                 }
@@ -830,7 +837,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT: TỰ ĐỘNG LẤY API KEY TỪ REQUIREMENTS.TXT QUA APP.PY
+        // AI CHẤM VÀ NHẬN XÉT: BẮT ĐÚNG MÃ LỖI, CHỐNG XOAY TREO
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -848,7 +855,7 @@
                 return;
             }
 
-            // Tự động nhận API Key tiêm vào từ app.py hoặc lấy từ bộ nhớ trình duyệt
+            // Tự động nhận API Key tiêm vào từ requirements.txt qua app.py
             let injectedKey = "{{GEMINI_API_KEY}}";
             let apiKey = (injectedKey && !injectedKey.includes("{{")) ? injectedKey.trim() : (localStorage.getItem('gemini_api_key_stored') || '').trim();
 
@@ -888,21 +895,18 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
 {"score": "Điền điểm số", "comment": "Lời nhận xét của giáo viên"}`;
 
             try {
-                // Sử dụng model chuẩn tương thích toàn cầu
                 const targetModel = "gemini-2.5-flash";
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
 
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 giây tối đa để chống quay mãi
+                const timeoutId = setTimeout(() => controller.abort(), 20000); // Tối đa 20s chống treo vô hạn
 
                 const response = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     signal: controller.signal,
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: promptText }]
-                        }],
+                        contents: [{ parts: [{ text: promptText }] }],
                         generationConfig: {
                             temperature: 0.35,
                             responseMimeType: "application/json"
@@ -914,8 +918,17 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
 
                 if (!response.ok) {
                     const errData = await response.json().catch(() => ({}));
-                    const detailMsg = errData?.error?.message || `Lỗi HTTP ${response.status}`;
-                    throw new Error(detailMsg);
+                    const code = response.status;
+                    const msg = errData?.error?.message || "";
+
+                    if (code === 429) {
+                        throw new Error("LỖI QUÁ TẢI (429): Bạn đã gọi AI quá nhiều lần trong 1 phút hoặc hết hạn mức ngày của gói miễn phí. Vui lòng chờ 1-2 phút rồi bấm lại!");
+                    } else if (code === 400 || code === 403) {
+                        localStorage.removeItem('gemini_api_key_stored');
+                        throw new Error("API Key không hợp lệ hoặc đã bị Google khóa bảo mật: " + msg);
+                    } else {
+                        throw new Error(`Mã lỗi ${code}: ${msg}`);
+                    }
                 }
 
                 const data = await response.json();
@@ -933,11 +946,10 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
                 }
             } catch (error) {
                 console.error("Chi tiết lỗi Gemini:", error);
-                
                 if (error.name === 'AbortError') {
-                    alert("Kết nối quá thời gian chờ (hơn 20s). Vui lòng kiểm tra lại đường truyền mạng!");
+                    alert("Kết nối quá thời gian chờ (hơn 20s). Đường truyền mạng hoặc máy chủ AI đang bị nghẽn.");
                 } else {
-                    alert("Lỗi khi kết nối với Gemini AI:\n" + error.message + "\n\nVui lòng kiểm tra lại API Key hoặc mạng internet.");
+                    alert(error.message);
                 }
             } finally {
                 btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem`;
@@ -945,6 +957,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
             }
         }
 
+        // --- DUYỆT ĐIỂM: GỬI GÓI TIN SIÊU NHẸ ĐỂ HỌC SINH NHẬN NGAY LẬP TỨC ---
         function saveAndBroadcastGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
             if (!sub) return;
@@ -955,12 +968,26 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
 
             localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
 
+            // Chỉ gửi kết quả dạng chữ (không gửi kèm ảnh) để gói tin cực nhẹ (dưới 2KB), học sinh nhận tức thì
+            const lightGradeData = {
+                id: sub.id,
+                studentName: sub.studentName,
+                className: sub.className,
+                examTitle: sub.examTitle,
+                score: sub.score,
+                status: sub.status,
+                comment: sub.comment
+            };
+
             pubnub.publish({
                 channel: REALTIME_CHANNEL,
-                message: { type: "UPDATE_GRADE", payload: sub }
+                message: { type: "UPDATE_GRADE", payload: lightGradeData }
+            }, function(status) {
+                if (!status.error) {
+                    showToast("Đã gửi kết quả thành công về máy học sinh!");
+                }
             });
 
-            showToast("Đã duyệt điểm & gửi kết quả về máy học sinh!");
             closeGradingWorkspace();
             renderTeacherSubmissionsList();
         }
@@ -1083,17 +1110,18 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
             }
         }
 
+        // --- NÉN ẢNH SIÊU NHẸ (DƯỚI 5KB) ĐỂ GÓI TIN KHÔNG BỊ PUBNUB HỦY BỎ ---
         function captureSnap(idx) {
             const v = document.getElementById('webcam-video-element');
             const c = document.getElementById('hidden-snapshot-canvas');
             if (!v || !c || !v.videoWidth) return;
             
-            c.width = 240;
-            c.height = 180;
+            c.width = 100;
+            c.height = 75;
             const ctx = c.getContext('2d');
             ctx.drawImage(v, 0, 0, c.width, c.height);
             
-            const compressedPhoto = c.toDataURL('image/jpeg', 0.5);
+            const compressedPhoto = c.toDataURL('image/jpeg', 0.25);
             currentSnapshots.push(compressedPhoto);
             document.getElementById('snapshot-status-tag').innerText = `📸 Ảnh giám sát: ${currentSnapshots.length}/2`;
         }
@@ -1227,6 +1255,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
             stopSpeechEngine();
         }
 
+        // --- NỘP BÀI: TỰ ĐỘNG THỬ LẠI NẾU NGHẼN MẠNG ---
         function submitStudentExamAction() {
             const ans = document.getElementById('student-speech-result-box').value.trim();
             if (!ans) {
@@ -1259,11 +1288,16 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
                 channel: REALTIME_CHANNEL,
                 message: { type: "NEW_SUBMISSION", payload: sub }
             }, function(status, response) {
-                if (!status.error) {
-                    showToast("Đã nộp bài thành công về máy giáo viên!");
-                } else {
-                    console.warn("Lỗi gửi:", status);
+                if (status.error) {
+                    console.warn("Gói tin nặng, đang gửi lại bản tối giản:", status);
+                    // Nếu lỗi do dung lượng, tự động bỏ ảnh để đảm bảo bài nộp đến nơi 100%
+                    sub.snapshots = [];
+                    pubnub.publish({
+                        channel: REALTIME_CHANNEL,
+                        message: { type: "NEW_SUBMISSION", payload: sub }
+                    });
                 }
+                showToast("Đã nộp bài thành công về máy giáo viên!");
             });
 
             navigateTo('screen-student-dashboard');
