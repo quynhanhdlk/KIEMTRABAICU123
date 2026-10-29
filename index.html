@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Kiểm Tra Bài Cũ Thông Minh</title>
+    <title>Voicecheck AI - Kiểm Tra Bài Cũ </title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS (xlsx) -->
@@ -631,6 +631,7 @@
             safePubNubPublish({ type: "NEW_EXAM", payload: examObj });
         }
 
+        // --- HIỂN THỊ ĐỦ 3 NÚT: XEM - SỬA - XÓA ---
         function renderCreatedExamsTable() {
             const list = localStore.exams || [];
             const container = document.getElementById('created-exams-list');
@@ -661,6 +662,7 @@
             `).join('');
         }
 
+        // --- XEM CHI TIẾT ĐỀ (POPUP) ---
         function viewExamDetail(examId) {
             const exam = (localStore.exams || []).find(x => x.id === examId);
             if (!exam) return;
@@ -678,6 +680,7 @@
             document.getElementById('modal-view-exam').classList.add('hidden');
         }
 
+        // --- NẠP LẠI ĐỀ VÀO FORM ĐỂ CHỈNH SỬA ---
         function loadExamForEdit(examId) {
             const exam = (localStore.exams || []).find(x => x.id === examId);
             if (!exam) return;
@@ -796,7 +799,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT: THANG ĐIỂM 10, XƯNG CÔ, FALLBACK MODEL
+        // AI CHẤM BÀI: TỰ ĐỘNG DÒ TÌM MODEL KHẢ DỤNG QUA LISTMODELS (CHỐNG LỖI 404)
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -820,7 +823,7 @@
                          : (localStorage.getItem('gemini_api_key_stored') || '').trim();
 
             if (!apiKey) {
-                apiKey = prompt("Chưa tìm thấy API Key hoặc Key bị khóa. Vui lòng dán mã API Key mới (AIzaSy...):");
+                apiKey = prompt("Vui lòng dán mã Gemini API Key của bạn (AIzaSy...):");
                 if (apiKey) {
                     apiKey = apiKey.trim();
                     localStorage.setItem('gemini_api_key_stored', apiKey);
@@ -831,7 +834,7 @@
             }
 
             const btn = document.getElementById('btn-ai-grader');
-            btn.innerHTML = `<span class="animate-spin">🔄</span> Cô đang chấm bài theo barem...`;
+            btn.innerHTML = `<span class="animate-spin">🔄</span> Đang kết nối AI và đọc barem...`;
             btn.disabled = true;
 
             const promptText = `Bạn là một giáo viên có tâm, giàu kinh nghiệm sư phạm, xưng "Cô" và gọi học sinh là "em".
@@ -854,50 +857,70 @@ NGUYÊN TẮC BẮT BUỘC:
 TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không dùng markdown \`\`\`json):
 {"score": "Điền điểm số (ví dụ 8.5/10)", "comment": "Lời nhận xét chi tiết của Cô"}`;
 
-            const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash"];
-            let lastErrorMsg = "";
-            let successResult = null;
-
-            for (let modelName of modelsToTry) {
+            try {
+                // 1. Tự động lấy danh sách model khả dụng từ chính Google cấp cho Key này
+                let chosenModel = "";
                 try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-                    const res = await fetch(url, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: promptText }] }],
-                            generationConfig: {
-                                temperature: 0.3,
-                                responseMimeType: "application/json"
-                            }
-                        })
-                    });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                        let cleanJson = rawOutput.replace(/```json/gi, '').replace(/```/g, '').trim();
-                        successResult = JSON.parse(cleanJson);
-                        break;
-                    } else {
-                        const errData = await res.json().catch(() => ({}));
-                        lastErrorMsg = `[Mã ${res.status}] ${errData?.error?.message || res.statusText}`;
+                    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                    if (listRes.ok) {
+                        const listData = await listRes.json();
+                        const models = listData.models || [];
+                        const validModels = models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
+                        const flashModel = validModels.find(m => m.name.toLowerCase().includes("flash"));
+                        if (flashModel) {
+                            chosenModel = flashModel.name;
+                        } else if (validModels.length > 0) {
+                            chosenModel = validModels[0].name;
+                        }
                     }
                 } catch(e) {
-                    lastErrorMsg = e.message;
+                    console.warn("Lỗi gọi listModels:", e);
                 }
-            }
 
-            btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem Thang 10`;
-            btn.disabled = false;
+                if (!chosenModel) {
+                    chosenModel = "models/gemini-2.0-flash";
+                }
+                if (!chosenModel.startsWith("models/")) {
+                    chosenModel = "models/" + chosenModel;
+                }
 
-            if (successResult && successResult.score !== undefined && successResult.comment) {
-                document.getElementById('grading-score-field').value = successResult.score;
-                document.getElementById('grading-comment-field').value = successResult.comment;
-                showToast("AI đã hoàn thành chấm bài!");
-            } else {
-                localStorage.removeItem('gemini_api_key_stored');
-                alert("Google báo lỗi: " + lastErrorMsg + "\n\n(Nếu API Key bị quét và khóa trên GitHub, vui lòng tạo API Key mới dán vào Secrets của Streamlit nhé cô!)");
+                // 2. Gửi yêu cầu chấm bài
+                const url = `https://generativelanguage.googleapis.com/v1beta/${chosenModel}:generateContent?key=${apiKey}`;
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }],
+                        generationConfig: {
+                            temperature: 0.3,
+                            responseMimeType: "application/json"
+                        }
+                    })
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(`[Mã ${res.status}] ${errData?.error?.message || res.statusText}`);
+                }
+
+                const data = await res.json();
+                const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                let cleanJson = rawOutput.replace(/```json/gi, '').replace(/```/g, '').trim();
+                const result = JSON.parse(cleanJson);
+
+                if (result.score !== undefined && result.comment) {
+                    document.getElementById('grading-score-field').value = result.score;
+                    document.getElementById('grading-comment-field').value = result.comment;
+                    showToast("AI đã hoàn thành chấm bài!");
+                } else {
+                    throw new Error("Dữ liệu phản hồi thiếu trường điểm hoặc nhận xét.");
+                }
+            } catch (error) {
+                console.error("Chi tiết lỗi chấm bài:", error);
+                alert("Google báo lỗi: " + error.message);
+            } finally {
+                btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem Thang 10`;
+                btn.disabled = false;
             }
         }
 
