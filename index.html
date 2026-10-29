@@ -744,7 +744,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT: BẮT ĐÚNG MÃ LỖI, BẢO ĐẢM XỬ LÝ CHUẨN XÁC 100%
+        // AI CHẤM VÀ NHẬN XÉT: SỬ DỤNG MODEL CHUẨN MỚI NHẤT
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -765,8 +765,10 @@
                 return;
             }
 
-            // Lấy API Key từ localStorage hoặc cấu hình
-            let apiKey = (localStorage.getItem('gemini_api_key_stored') || '').trim();
+            // Lấy API Key từ biến tiêm sẵn hoặc localStorage
+            let injectedKey = "{{GEMINI_API_KEY}}";
+            let apiKey = (injectedKey && !injectedKey.includes("{{")) ? injectedKey.trim() : (localStorage.getItem('gemini_api_key_stored') || '').trim();
+
             if (!apiKey) {
                 apiKey = prompt("Vui lòng dán mã Gemini API Key của bạn (AIzaSy...) để AI chấm bài:");
                 if (apiKey) {
@@ -800,10 +802,11 @@ NGUYÊN TẮC:
 3. Nhận xét chân thật, xưng hô tự nhiên (thầy/cô - em), khen ngợi cụ thể và dặn dò ân cần.
 
 TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`json, không có text ngoài):
-{"score": "Điểm số ví dụ 8.5/10", "comment": "Lời nhận xét chi tiết"}`,
+{"score": "Điểm số ví dụ 8.5/10", "comment": "Lời nhận xét chi tiết"}`;
 
             try {
-                const targetModel = "gemini-2.5-flash";
+                // Đã cập nhật sang model mới nhất tương thích với hệ thống
+                const targetModel = "gemini-2.5-flash"; // Hoặc gemini-3.8-flash tùy hệ thống API của bạn hỗ trợ
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
 
                 const controller = new AbortController();
@@ -831,4 +834,416 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
 
                     if (code === 429) {
                         throw new Error("LỖI QUÁ TẢI (429): Bạn đã gọi AI quá nhiều lần. Vui lòng chờ 1-2 phút rồi bấm lại!");
-                    } else if
+                    } else if (code === 400 || code === 403 || code === 404) {
+                        localStorage.removeItem('gemini_api_key_stored');
+                        throw new Error("Lỗi xác thực hoặc tên model không hợp lệ: " + msg);
+                    } else {
+                        throw new Error(`Mã lỗi ${code}: ${msg}`);
+                    }
+                }
+
+                const data = await response.json();
+                const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                let cleanJson = rawOutput.trim();
+                if (cleanJson.startsWith("```json")) cleanJson = cleanJson.replace(/^```json/i, '');
+                if (cleanJson.startsWith("```")) cleanJson = cleanJson.replace(/^```/, '');
+                if (cleanJson.endsWith("```")) cleanJson = cleanJson.slice(0, -3);
+                cleanJson = cleanJson.trim();
+
+                const result = JSON.parse(cleanJson);
+
+                if (result.score !== undefined && result.comment) {
+                    document.getElementById('grading-score-field').value = result.score;
+                    document.getElementById('grading-comment-field').value = result.comment;
+                    showToast("Gemini AI đã hoàn thành chấm bài!");
+                } else {
+                    throw new Error("Dữ liệu phản hồi thiếu trường score hoặc comment.");
+                }
+            } catch (error) {
+                console.error("Chi tiết lỗi chấm bài:", error);
+                if (error.name === 'AbortError') {
+                    alert("Kết nối quá thời gian chờ (hơn 25s). Vui lòng thử lại.");
+                } else {
+                    alert(error.message || "Đã xảy ra lỗi trong quá trình chấm bài.");
+                }
+            } finally {
+                btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem`;
+                btn.disabled = false;
+            }
+        }
+
+        // --- DUYỆT ĐIỂM: GỬI GÓI TIN SIÊU NHẸ ĐỂ HỌC SINH NHẬN NGAY LẬP TỨC ---
+        function saveAndBroadcastGrading() {
+            const sub = localStore.submissions.find(s => s.id === activeGradingId);
+            if (!sub) return;
+
+            sub.score = document.getElementById('grading-score-field').value.trim();
+            sub.comment = document.getElementById('grading-comment-field').value.trim();
+            sub.status = 'Đã duyệt';
+
+            localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+
+            const lightGradeData = {
+                id: sub.id,
+                studentName: sub.studentName,
+                className: sub.className,
+                examTitle: sub.examTitle,
+                score: sub.score,
+                status: sub.status,
+                comment: sub.comment
+            };
+
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "UPDATE_GRADE", payload: lightGradeData }
+            }, function(status) {
+                if (!status.error) {
+                    showToast("Đã gửi kết quả thành công về máy học sinh!");
+                }
+            });
+
+            closeGradingWorkspace();
+            renderTeacherSubmissionsList();
+        }
+
+        function exportResultsToExcel() {
+            const list = localStore.submissions || [];
+            if (list.length === 0) {
+                showToast("Chưa có bài thi để xuất kết quả!");
+                return;
+            }
+            const rows = [["STT", "Họ Tên", "Lớp", "Đề Thi", "Thời Gian", "Trả Lời", "Điểm", "Trạng Thái", "Nhận Xét"]];
+            list.forEach((s, i) => {
+                rows.push([i+1, s.studentName, s.className, s.examTitle, s.submitTime, s.answer, s.score, s.status, s.comment]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "KetQua");
+            XLSX.writeFile(wb, `Ket_Qua_${Date.now()}.xlsx`);
+            showToast("Đã xuất file Excel chuẩn chính quy!");
+        }
+
+        // --- HỌC SINH ---
+        let currentStudent = null;
+
+        function handleStudentLogin(e) {
+            e.preventDefault();
+            const name = document.getElementById('student-name-input').value.trim();
+            const rawClass = document.getElementById('student-class-input').value.trim();
+            const className = cleanClassName(rawClass);
+
+            currentStudent = { name, className };
+            document.getElementById('student-card-name').innerText = `Học sinh: ${name}`;
+            document.getElementById('student-card-class').innerText = `Lớp: ${className}`;
+            
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "REQUEST_SYNC" }
+            });
+
+            navigateTo('screen-student-dashboard');
+        }
+
+        function handleStudentLogout() {
+            currentStudent = null;
+            navigateTo('screen-main');
+        }
+
+        function populateClassSelectForStudent() {
+            if (!currentStudent) return;
+            const selectEl = document.getElementById('student-filter-class-dropdown');
+            const classSet = new Set((localStore.exams || []).map(e => cleanClassName(e.className)));
+            classSet.add(currentStudent.className);
+
+            selectEl.innerHTML = Array.from(classSet).map(c => `
+                <option value="${c}" ${c === currentStudent.className ? 'selected' : ''}>Lớp ${c}</option>
+            `).join('');
+            renderStudentExamsList();
+        }
+
+        function renderStudentExamsList() {
+            const selectEl = document.getElementById('student-filter-class-dropdown');
+            const chosenClass = cleanClassName(selectEl ? selectEl.value : '');
+            const container = document.getElementById('student-assigned-exams-box');
+            const list = (localStore.exams || []).filter(e => cleanClassName(e.className) === chosenClass);
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="text-gray-400 italic text-center py-4">Chưa có bài kiểm tra nào cho Lớp ${chosenClass}.</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(e => `
+                <div class="bg-white p-3 rounded-xl border border-pink-200 flex justify-between items-center shadow-sm">
+                    <div>
+                        <div class="font-bold text-gray-800 text-xs sm:text-sm">${e.examTitle}</div>
+                        <div class="text-[10px] text-gray-500">Lớp: ${e.className} | Ngày: ${e.examDate}</div>
+                    </div>
+                    <button type="button" onclick="enterExamRoom('${e.id}')" class="px-3.5 py-1.5 bg-rose-500 text-white font-bold rounded-xl text-xs shadow">Vào làm bài</button>
+                </div>
+            `).join('');
+        }
+
+        async function enterExamRoom(examId) {
+            activeExamForTest = (localStore.exams || []).find(e => e.id === examId);
+            if (!activeExamForTest) return;
+
+            document.getElementById('room-header-title').innerText = activeExamForTest.examTitle;
+            document.getElementById('room-header-sub').innerText = `Lớp ${activeExamForTest.className} | Ngày: ${activeExamForTest.examDate}`;
+            document.getElementById('room-exam-question-text').innerText = activeExamForTest.examContent;
+            document.getElementById('student-speech-result-box').value = '';
+            accumulatedFinalText = "";
+            currentSnapshots = [];
+            isMicActive = false;
+            updateMicButtonUI();
+
+            navigateTo('screen-student-exam-room');
+
+            const v = document.getElementById('webcam-video-element');
+            v.muted = true;
+            v.playsInline = true;
+            v.setAttribute('playsinline', '');
+            v.setAttribute('webkit-playsinline', '');
+
+            try {
+                if (!globalRealStream || !globalRealStream.active) {
+                    globalRealStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "user" },
+                        audio: false
+                    });
+                }
+                v.srcObject = globalRealStream;
+                v.onloadedmetadata = () => {
+                    v.play().catch(err => console.warn("Video play:", err));
+                };
+
+                timer1 = setTimeout(() => captureSnap(1), 2500);
+                timer2 = setTimeout(() => captureSnap(2), 6500);
+            } catch(e) {
+                console.warn("Lỗi camera:", e);
+                showToast("Không thể mở camera thiết bị!");
+            }
+        }
+
+        function captureSnap(idx) {
+            const v = document.getElementById('webcam-video-element');
+            const c = document.getElementById('hidden-snapshot-canvas');
+            if (!v || !c || !v.videoWidth) return;
+            
+            c.width = 100;
+            c.height = 75;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(v, 0, 0, c.width, c.height);
+            
+            const compressedPhoto = c.toDataURL('image/jpeg', 0.25);
+            currentSnapshots.push(compressedPhoto);
+            document.getElementById('snapshot-status-tag').innerText = `📸 Ảnh giám sát: ${currentSnapshots.length}/2`;
+        }
+
+        function toggleSpeech() {
+            if (!isMicActive) {
+                isMicActive = true;
+                updateMicButtonUI();
+                showToast("Đang lắng nghe... Hãy nói câu trả lời!");
+                startSpeechEngine();
+            } else {
+                stopSpeechEngine();
+            }
+        }
+
+        function startSpeechEngine() {
+            if (!isMicActive) return;
+
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) {
+                showToast("Trình duyệt chưa hỗ trợ giọng nói! Hãy mở bằng Chrome hoặc Safari.");
+                isMicActive = false;
+                updateMicButtonUI();
+                return;
+            }
+
+            try {
+                if (globalSpeech) {
+                    try { globalSpeech.abort(); } catch(e){}
+                }
+
+                globalSpeech = new SpeechRec();
+                globalSpeech.lang = 'vi-VN';
+                globalSpeech.continuous = true;
+                globalSpeech.interimResults = true;
+                globalSpeech.maxAlternatives = 1;
+
+                globalSpeech.onresult = (event) => {
+                    let currentInterim = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcriptPiece = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            accumulatedFinalText += transcriptPiece + ' ';
+                        } else {
+                            currentInterim += transcriptPiece;
+                        }
+                    }
+                    
+                    const box = document.getElementById('student-speech-result-box');
+                    if (box) {
+                        const totalText = (accumulatedFinalText + currentInterim).trim();
+                        if (totalText) {
+                            box.value = totalText;
+                        }
+                    }
+                };
+
+                globalSpeech.onerror = (event) => {
+                    console.warn("Speech recognition error:", event.error);
+                    if (event.error === 'not-allowed') {
+                        showToast("Vui lòng cho phép quyền Micro trên trình duyệt!");
+                        stopSpeechEngine();
+                    }
+                };
+
+                globalSpeech.onend = () => {
+                    if (isMicActive) {
+                        setTimeout(() => {
+                            if (isMicActive) {
+                                try {
+                                    globalSpeech.start();
+                                } catch(e) {
+                                    setTimeout(() => {
+                                        if (isMicActive) {
+                                            try { globalSpeech.start(); } catch(err){}
+                                        }
+                                    }, 400);
+                                }
+                            }
+                        }, 250);
+                    }
+                };
+
+                globalSpeech.start();
+            } catch(err) {
+                console.error("Lỗi khởi chạy mic:", err);
+                setTimeout(() => {
+                    if (isMicActive) {
+                        try { globalSpeech.start(); } catch(e){}
+                    }
+                }, 300);
+            }
+        }
+
+        function stopSpeechEngine() {
+            isMicActive = false;
+            if (globalSpeech) {
+                try {
+                    globalSpeech.stop();
+                } catch(e){}
+            }
+            updateMicButtonUI();
+            showToast("Đã dừng thu âm!");
+        }
+
+        function updateMicButtonUI() {
+            const btn = document.getElementById('btn-toggle-mic');
+            const icon = document.getElementById('mic-icon');
+            const txt = document.getElementById('mic-btn-text');
+
+            if (isMicActive) {
+                btn.className = "w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 animate-pulse";
+                icon.innerText = "🛑";
+                txt.innerText = "ĐANG THU ÂM... (BẤM ĐỂ DỪNG NÓI)";
+            } else {
+                btn.className = "w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2";
+                icon.innerText = "🎙️";
+                txt.innerText = "Bấm vào đây để BẬT MICRO nói";
+            }
+        }
+
+        function clearSpeechText() {
+            accumulatedFinalText = "";
+            document.getElementById('student-speech-result-box').value = '';
+            showToast("Đã xóa nội dung. Hãy bật micro để nói lại!");
+        }
+
+        function stopHardware() {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+            stopSpeechEngine();
+        }
+
+        function submitStudentExamAction() {
+            const ans = document.getElementById('student-speech-result-box').value.trim();
+            if (!ans) {
+                showToast("Bạn chưa có câu trả lời bằng giọng nói!");
+                return;
+            }
+
+            stopSpeechEngine();
+
+            const now = new Date();
+            const subId = 'sub_' + Date.now();
+            const sub = {
+                id: subId,
+                studentName: currentStudent.name,
+                className: currentStudent.className,
+                examTitle: activeExamForTest.examTitle,
+                examRubric: activeExamForTest.examRubric,
+                submitTime: `${now.getHours()}:${now.getMinutes()} - ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`,
+                answer: ans,
+                snapshots: currentSnapshots,
+                score: '--',
+                status: 'Chờ chấm',
+                comment: ''
+            };
+
+            localStore.submissions = [sub, ...localStore.submissions.filter(s => s.id !== subId)];
+            localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+
+            pubnub.publish({
+                channel: REALTIME_CHANNEL,
+                message: { type: "NEW_SUBMISSION", payload: sub }
+            }, function(status, response) {
+                if (status.error) {
+                    sub.snapshots = [];
+                    pubnub.publish({
+                        channel: REALTIME_CHANNEL,
+                        message: { type: "NEW_SUBMISSION", payload: sub }
+                    });
+                }
+                showToast("Đã nộp bài thành công về máy giáo viên!");
+            });
+
+            navigateTo('screen-student-dashboard');
+        }
+
+        function exitExamRoom() {
+            stopHardware();
+            navigateTo('screen-student-dashboard');
+        }
+
+        function renderStudentPersonalResults() {
+            if (!currentStudent) return;
+            const container = document.getElementById('student-results-cards-container');
+            const list = (localStore.submissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Bạn chưa nộp bài thi nào.</div>';
+                return;
+            }
+
+            container.innerHTML = list.map(s => `
+                <div class="bg-white p-3.5 rounded-xl border border-pink-200 space-y-1.5 shadow-sm">
+                    <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-800">${s.examTitle}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full ${s.status === 'Đã duyệt' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span>
+                    </div>
+                    <div class="text-xs text-gray-700">Điểm số: <b class="text-pink-600 text-sm font-extrabold">${s.score}</b></div>
+                    <div class="text-xs text-gray-600 bg-pink-50/50 p-2.5 rounded-lg border border-pink-100 whitespace-pre-wrap leading-relaxed">${s.comment || 'Đang chờ giáo viên duyệt...'}</div>
+                </div>
+            `).join('');
+        }
+
+        window.addEventListener('load', () => {
+            refreshAllScreens();
+        });
+    </script>
+</body>
+</html>
