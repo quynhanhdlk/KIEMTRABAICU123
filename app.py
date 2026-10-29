@@ -20,7 +20,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 1. Tự động tìm và lấy API Key từ file requirements.txt
+# 1. Trích xuất API Key từ requirements.txt hoặc st.secrets
 api_key = ""
 if os.path.exists("requirements.txt"):
     try:
@@ -32,7 +32,6 @@ if os.path.exists("requirements.txt"):
     except Exception as e:
         print("Lỗi đọc requirements.txt:", e)
 
-# Nếu requirements.txt chưa có thì kiểm tra tiếp trong Streamlit Secrets
 if not api_key:
     try:
         if "GEMINI_API_KEY" in st.secrets:
@@ -43,7 +42,7 @@ if not api_key:
 if not api_key:
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
 
-# 2. Đọc file index.html và tiêm trực tiếp API Key vào
+# 2. Đọc file index.html và render
 try:
     with open("index.html", "r", encoding="utf-8") as f:
         html_code = f.read()
@@ -51,4 +50,4 @@ try:
     html_code = html_code.replace("{{GEMINI_API_KEY}}", api_key)
     components.html(html_code, height=980, scrolling=True)
 except FileNotFoundError:
-    st.error("Không tìm thấy tệp index.html trong repository!")
+    st.error("Không tìm thấy tệp index.html trong thư mục ứng dụng!")
