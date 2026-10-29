@@ -489,7 +489,6 @@
                     }
                 } else if (msg.type === "REQUEST_SUBMISSIONS_SYNC") {
                     if (localStore.submissions.length > 0) {
-                        // Nén bớt ảnh trước khi đồng bộ toàn bộ để không vượt dung lượng PubNub
                         const cleanSubs = localStore.submissions.map(s => ({
                             ...s,
                             snapshots: []
@@ -624,52 +623,7 @@
 
         function formatDateInput(input) {
             let v = input.value.replace(/\D/g, '').slice(0, 8);
-            if (v.length >= 5) input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
-            else if (v.length >= 3) input.value = `${v.slice(0, 2)}/${v.slice(2)}`;
-            else input.value = v;
-        }
-
-        function saveAndBroadcastExam() {
-            const rawClass = document.getElementById('exam-class').value.trim();
-            const className = cleanClassName(rawClass);
-            const date = document.getElementById('exam-date').value.trim();
-            const title = document.getElementById('exam-title').value.trim();
-            const content = document.getElementById('exam-content').value.trim();
-            const rubric = document.getElementById('exam-rubric').value.trim();
-            const editId = document.getElementById('editing-exam-id').value;
-
-            if (!className || !date || !title || !content) {
-                showToast("Vui lòng điền đủ Lớp, Ngày, Tên đề và Câu hỏi!");
-                return;
-            }
-
-            const examId = editId ? editId : ('exam_' + Date.now());
-            const examObj = {
-                id: examId,
-                className: className,
-                examDate: date,
-                examTitle: title,
-                examContent: content,
-                examRubric: rubric || "Đúng trọng tâm"
-            };
-
-            localStore.exams = [examObj, ...localStore.exams.filter(e => e.id !== examId)];
-            localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
-            renderCreatedExamsTable();
-
-            clearExamForm();
-            showToast(editId ? "Đã cập nhật đề thành công!" : "Đã lưu đề mới và truyền đến học sinh!");
-
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "NEW_EXAM", payload: examObj }
-            });
-        }
-
-        function renderCreatedExamsTable() {
-            const list = localStore.exams || [];
-            const container = document.getElementById('created-exams-list');
-            document.getElementById('exam-count-badge').innerText = `${list.length} đề`;
+            if (v.length >= 5) input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`; else if (v.length >= 3) input.value = `${v.slice(0, 2)}/${v.slice(2)}`; else input.value = v; }  function saveAndBroadcastExam() { const rawClass = document.getElementById('exam-class').value.trim(); const className = cleanClassName(rawClass); const date = document.getElementById('exam-date').value.trim(); const title = document.getElementById('exam-title').value.trim(); const content = document.getElementById('exam-content').value.trim(); const rubric = document.getElementById('exam-rubric').value.trim(); const editId = document.getElementById('editing-exam-id').value;  if (!className \vert{}\vert{} !date \vert{}\vert{} !title \vert{}\vert{} !content) { showToast("Vui lòng điền đủ Lớp, Ngày, Tên đề và Câu hỏi!"); return; }  const examId = editId ? editId : ('exam_' + Date.now()); const examObj = { id: examId, className: className, examDate: date, examTitle: title, examContent: content, examRubric: rubric \vert{}\vert{} "Đúng trọng tâm" };  localStore.exams = [examObj, ...localStore.exams.filter(e => e.id !== examId)]; localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams)); renderCreatedExamsTable();  clearExamForm(); showToast(editId ? "Đã cập nhật đề thành công!" : "Đã lưu đề mới và truyền đến học sinh!");  pubnub.publish({ channel: REALTIME_CHANNEL, message: { type: "NEW_EXAM", payload: examObj } }); }  function renderCreatedExamsTable() { const list = localStore.exams \vert{}\vert{} []; const container = document.getElementById('created-exams-list'); document.getElementById('exam-count-badge').innerText = `${list.length} đề`;
             if (list.length === 0) {
                 container.innerHTML = '<div class="text-gray-400 italic text-center py-3">Chưa có đề nào trên hệ thống.</div>';
                 return;
@@ -678,7 +632,7 @@
                 <div class="bg-pink-50/50 p-2.5 rounded-xl border border-pink-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hover:bg-pink-50 transition">
                     <div class="overflow-hidden">
                         <div class="font-bold text-pink-700 truncate">${e.examTitle}</div>
-                        <div class="text-[10px] text-gray-500">Lớp: <b class="text-gray-700">${e.className}</b> | Ngày: ${e.examDate}</div>
+                        <div class="text-[10px] text-gray-500">Lớp: <b class="text-gray-700">${e.className}</b> \vert{} Ngày: ${e.examDate}</div>
                     </div>
                     <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                         <button type="button" onclick="viewExamDetail('${e.id}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-lg text-[10px] border border-blue-200 transition">
@@ -732,39 +686,7 @@
             const exam = (localStore.exams || []).find(x => x.id === examId);
             const title = exam ? exam.examTitle : "đề kiểm tra này";
 
-            if (confirm(`Thầy/Cô có chắc chắn muốn xóa "${title}" không?`)) {
-                localStore.exams = (localStore.exams || []).filter(x => x.id !== examId);
-                localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
-                renderCreatedExamsTable();
-
-                if (document.getElementById('editing-exam-id').value === examId) {
-                    clearExamForm();
-                }
-
-                pubnub.publish({
-                    channel: REALTIME_CHANNEL,
-                    message: { type: "DELETE_EXAM", payload: examId }
-                });
-
-                showToast("Đã xóa đề kiểm tra thành công!");
-            }
-        }
-
-        function clearExamForm() {
-            document.getElementById('editing-exam-id').value = '';
-            document.getElementById('exam-class').value = '';
-            document.getElementById('exam-date').value = '';
-            document.getElementById('exam-title').value = '';
-            document.getElementById('exam-content').value = '';
-            document.getElementById('exam-rubric').value = '';
-            document.getElementById('btn-save-exam-text').innerText = "Lưu Đề & Truyền Đến Máy Học Sinh";
-            document.getElementById('btn-save-exam-icon').innerText = "📡";
-        }
-
-        function renderTeacherSubmissionsList() {
-            const list = localStore.submissions || [];
-            const container = document.getElementById('submissions-list-container');
-            document.getElementById('submission-count-badge').innerText = `${list.length} bài`;
+            if (confirm(`Thầy/Cô có chắc chắn muốn xóa "${title}" không?`)) { localStore.exams = (localStore.exams \vert{}\vert{} []).filter(x => x.id !== examId); localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams)); renderCreatedExamsTable();  if (document.getElementById('editing-exam-id').value === examId) { clearExamForm(); }  pubnub.publish({ channel: REALTIME_CHANNEL, message: { type: "DELETE_EXAM", payload: examId } });  showToast("Đã xóa đề kiểm tra thành công!"); } }  function clearExamForm() { document.getElementById('editing-exam-id').value = ''; document.getElementById('exam-class').value = ''; document.getElementById('exam-date').value = ''; document.getElementById('exam-title').value = ''; document.getElementById('exam-content').value = ''; document.getElementById('exam-rubric').value = ''; document.getElementById('btn-save-exam-text').innerText = "Lưu Đề & Truyền Đến Máy Học Sinh"; document.getElementById('btn-save-exam-icon').innerText = "📡"; }  function renderTeacherSubmissionsList() { const list = localStore.submissions \vert{}\vert{} []; const container = document.getElementById('submissions-list-container'); document.getElementById('submission-count-badge').innerText = `${list.length} bài`;
             if (list.length === 0) {
                 container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Chưa có bài thi nào được nộp.</div>';
                 return;
@@ -773,7 +695,7 @@
                 <div class="border border-pink-100 rounded-xl p-2.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hover:bg-pink-50/40 transition">
                     <div>
                         <div class="font-bold text-gray-800">${s.studentName} <span class="text-[10px] font-bold ${s.status === 'Đã duyệt' ? 'text-green-600' : 'text-amber-600'}">(${s.status})</span></div>
-                        <div class="text-[10px] text-gray-500">Lớp: <b>${s.className}</b> | Đề: <b>${s.examTitle}</b> | Điểm: <b>${s.score}</b></div>
+                        <div class="text-[10px] text-gray-500">Lớp: <b>${s.className}</b> | Đề: <b>${s.examTitle}</b> \vert{} Điểm: <b>${s.score}</b></div>
                     </div>
                     <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                         <button type="button" onclick="openGradingItem('${s.id}')" class="px-3 py-1 bg-pink-500 hover:bg-pink-600 text-white rounded-lg text-xs font-bold transition">
@@ -791,21 +713,7 @@
             const sub = (localStore.submissions || []).find(s => s.id === subId);
             const studentName = sub ? sub.studentName : "học sinh này";
 
-            if (confirm(`Thầy/Cô có chắc chắn muốn xóa bài nộp của ${studentName} không?`)) {
-                localStore.submissions = (localStore.submissions || []).filter(s => s.id !== subId);
-                localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
-                renderTeacherSubmissionsList();
-
-                if (activeGradingId === subId) {
-                    closeGradingWorkspace();
-                }
-
-                pubnub.publish({
-                    channel: REALTIME_CHANNEL,
-                    message: { type: "DELETE_SUBMISSION", payload: subId }
-                });
-
-                showToast(`Đã xóa bài của ${studentName} thành công!`);
+            if (confirm(`Thầy/Cô có chắc chắn muốn xóa bài nộp của ${studentName} không?`)) { localStore.submissions = (localStore.submissions \vert{}\vert{} []).filter(s => s.id !== subId); localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions)); renderTeacherSubmissionsList();  if (activeGradingId === subId) { closeGradingWorkspace(); }  pubnub.publish({ channel: REALTIME_CHANNEL, message: { type: "DELETE_SUBMISSION", payload: subId } });  showToast(`Đã xóa bài của ${studentName} thành công!`);
             }
         }
 
@@ -815,8 +723,7 @@
             if (!sub) return;
 
             document.getElementById('grading-workspace').classList.remove('hidden');
-            document.getElementById('grading-student-heading').innerText = `Học sinh: ${sub.studentName} (Lớp ${sub.className})`;
-            document.getElementById('grading-exam-heading').innerText = `Đề: ${sub.examTitle}`;
+            document.getElementById('grading-student-heading').innerText = `Học sinh: ${sub.studentName} (Lớp ${sub.className})`; document.getElementById('grading-exam-heading').innerText = `Đề: ${sub.examTitle}`;
             document.getElementById('grading-student-transcript').innerText = sub.answer || "(Học sinh chưa có câu trả lời)";
             document.getElementById('grading-exam-rubric-view').innerText = sub.examRubric || "(Chưa thiết lập barem)";
 
@@ -837,11 +744,14 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT: BẮT ĐÚNG MÃ LỖI, CHỐNG XOAY TREO
+        // AI CHẤM VÀ NHẬN XÉT: BẮT ĐÚNG MÃ LỖI, BẢO ĐẢM XỬ LÝ CHUẨN XÁC 100%
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
-            if (!sub) return;
+            if (!sub) {
+                showToast("Không tìm thấy thông tin bài nộp!");
+                return;
+            }
 
             const studentName = sub.studentName || 'Em';
             const studentAnswer = (sub.answer || '').trim();
@@ -855,12 +765,10 @@
                 return;
             }
 
-            // Tự động nhận API Key tiêm vào từ requirements.txt qua app.py
-            let injectedKey = "{{GEMINI_API_KEY}}";
-            let apiKey = (injectedKey && !injectedKey.includes("{{")) ? injectedKey.trim() : (localStorage.getItem('gemini_api_key_stored') || '').trim();
-
+            // Lấy API Key từ localStorage hoặc cấu hình
+            let apiKey = (localStorage.getItem('gemini_api_key_stored') || '').trim();
             if (!apiKey) {
-                apiKey = prompt("Chưa tìm thấy mã API trong requirements.txt. Vui lòng dán trực tiếp mã API Key (AIzaSy...):");
+                apiKey = prompt("Vui lòng dán mã Gemini API Key của bạn (AIzaSy...) để AI chấm bài:");
                 if (apiKey) {
                     apiKey = apiKey.trim();
                     localStorage.setItem('gemini_api_key_stored', apiKey);
@@ -874,32 +782,32 @@
             btn.innerHTML = `<span class="animate-spin">🔄</span> Gemini đang đọc Barem và chấm bài...`;
             btn.disabled = true;
 
-            const promptText = `Bạn là một giáo viên có tâm, giàu kinh nghiệm sư phạm, ngôn từ ấm áp, gần gũi như một người thầy/cô đang trực tiếp chấm bài và nhận xét học sinh.
+            const promptText = `Bạn là một giáo viên có tâm, giàu kinh nghiệm sư phạm, ngôn từ ấm áp, gần gũi, xưng "thầy/cô" và gọi học sinh là "em".
 
 THÔNG TIN BÀI KIỂM TRA:
 - Đề bài: ${examQuestion}
 - BÀI LÀM CỦA HỌC SINH (${studentName}):
 "${studentAnswer}"
 
-*** BẢN QUY CHẾ BAREM & MỌI YÊU CẦU CHẤM CỦA GIÁO VIÊN (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI) ***:
+*** BẢN QUY CHẾ BAREM & MỌI YÊU CẦU CHẤM CỦA GIÁO VIÊN ***:
 """
-${rubricContent || "Đánh giá mức độ hiểu bài và nắm vững kiến thức."}
+${rubricContent || "Đánh giá mức độ hiểu bài và nắm vững kiến thức theo thang điểm 10."}
 """
 
 NGUYÊN TẮC:
-1. Tuân thủ 100% barem về thang điểm và yêu cầu nhận xét.
-2. Học sinh nói qua micro nên hiểu bản chất ý đúng thay vì bắt bẻ từng từ.
+1. Tuân thủ barem về thang điểm và yêu cầu nhận xét.
+2. Học sinh nói qua micro nên hiểu bản chất ý đúng.
 3. Nhận xét chân thật, xưng hô tự nhiên (thầy/cô - em), khen ngợi cụ thể và dặn dò ân cần.
 
-TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdown \`\`\`json, không thêm chữ bên ngoài):
-{"score": "Điền điểm số", "comment": "Lời nhận xét của giáo viên"}`;
+TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`json, không có text ngoài):
+{"score": "Điểm số ví dụ 8.5/10", "comment": "Lời nhận xét chi tiết"}`,
 
             try {
                 const targetModel = "gemini-2.5-flash";
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
 
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 20000); // Tối đa 20s chống treo vô hạn
+                const timeoutId = setTimeout(() => controller.abort(), 25000);
 
                 const response = await fetch(url, {
                     method: "POST",
@@ -922,417 +830,5 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn hợp lệ (không kèm markdow
                     const msg = errData?.error?.message || "";
 
                     if (code === 429) {
-                        throw new Error("LỖI QUÁ TẢI (429): Bạn đã gọi AI quá nhiều lần trong 1 phút hoặc hết hạn mức ngày của gói miễn phí. Vui lòng chờ 1-2 phút rồi bấm lại!");
-                    } else if (code === 400 || code === 403) {
-                        localStorage.removeItem('gemini_api_key_stored');
-                        throw new Error("API Key không hợp lệ hoặc đã bị Google khóa bảo mật: " + msg);
-                    } else {
-                        throw new Error(`Mã lỗi ${code}: ${msg}`);
-                    }
-                }
-
-                const data = await response.json();
-                const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-                let cleanJson = rawOutput.replace(/```json/gi, '').replace(/```/g, '').trim();
-                const result = JSON.parse(cleanJson);
-
-                if (result.score !== undefined && result.comment) {
-                    document.getElementById('grading-score-field').value = result.score;
-                    document.getElementById('grading-comment-field').value = result.comment;
-                    showToast("Gemini AI đã hoàn thành chấm bài!");
-                } else {
-                    throw new Error("Dữ liệu phản hồi thiếu trường score hoặc comment.");
-                }
-            } catch (error) {
-                console.error("Chi tiết lỗi Gemini:", error);
-                if (error.name === 'AbortError') {
-                    alert("Kết nối quá thời gian chờ (hơn 20s). Đường truyền mạng hoặc máy chủ AI đang bị nghẽn.");
-                } else {
-                    alert(error.message);
-                }
-            } finally {
-                btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem`;
-                btn.disabled = false;
-            }
-        }
-
-        // --- DUYỆT ĐIỂM: GỬI GÓI TIN SIÊU NHẸ ĐỂ HỌC SINH NHẬN NGAY LẬP TỨC ---
-        function saveAndBroadcastGrading() {
-            const sub = localStore.submissions.find(s => s.id === activeGradingId);
-            if (!sub) return;
-
-            sub.score = document.getElementById('grading-score-field').value.trim();
-            sub.comment = document.getElementById('grading-comment-field').value.trim();
-            sub.status = 'Đã duyệt';
-
-            localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
-
-            // Chỉ gửi kết quả dạng chữ (không gửi kèm ảnh) để gói tin cực nhẹ (dưới 2KB), học sinh nhận tức thì
-            const lightGradeData = {
-                id: sub.id,
-                studentName: sub.studentName,
-                className: sub.className,
-                examTitle: sub.examTitle,
-                score: sub.score,
-                status: sub.status,
-                comment: sub.comment
-            };
-
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "UPDATE_GRADE", payload: lightGradeData }
-            }, function(status) {
-                if (!status.error) {
-                    showToast("Đã gửi kết quả thành công về máy học sinh!");
-                }
-            });
-
-            closeGradingWorkspace();
-            renderTeacherSubmissionsList();
-        }
-
-        function exportResultsToExcel() {
-            const list = localStore.submissions || [];
-            if (list.length === 0) {
-                showToast("Chưa có bài thi để xuất kết quả!");
-                return;
-            }
-            const rows = [["STT", "Họ Tên", "Lớp", "Đề Thi", "Thời Gian", "Trả Lời", "Điểm", "Trạng Thái", "Nhận Xét"]];
-            list.forEach((s, i) => {
-                rows.push([i+1, s.studentName, s.className, s.examTitle, s.submitTime, s.answer, s.score, s.status, s.comment]);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "KetQua");
-            XLSX.writeFile(wb, `Ket_Qua_${Date.now()}.xlsx`);
-            showToast("Đã xuất file Excel chuẩn chính quy!");
-        }
-
-        // --- HỌC SINH ---
-        let currentStudent = null;
-
-        function handleStudentLogin(e) {
-            e.preventDefault();
-            const name = document.getElementById('student-name-input').value.trim();
-            const rawClass = document.getElementById('student-class-input').value.trim();
-            const className = cleanClassName(rawClass);
-
-            currentStudent = { name, className };
-            document.getElementById('student-card-name').innerText = `Học sinh: ${name}`;
-            document.getElementById('student-card-class').innerText = `Lớp: ${className}`;
-            
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "REQUEST_SYNC" }
-            });
-
-            navigateTo('screen-student-dashboard');
-        }
-
-        function handleStudentLogout() {
-            currentStudent = null;
-            navigateTo('screen-main');
-        }
-
-        function populateClassSelectForStudent() {
-            if (!currentStudent) return;
-            const selectEl = document.getElementById('student-filter-class-dropdown');
-            const classSet = new Set((localStore.exams || []).map(e => cleanClassName(e.className)));
-            classSet.add(currentStudent.className);
-
-            selectEl.innerHTML = Array.from(classSet).map(c => `
-                <option value="${c}" ${c === currentStudent.className ? 'selected' : ''}>Lớp ${c}</option>
-            `).join('');
-            renderStudentExamsList();
-        }
-
-        function renderStudentExamsList() {
-            const selectEl = document.getElementById('student-filter-class-dropdown');
-            const chosenClass = cleanClassName(selectEl ? selectEl.value : '');
-            const container = document.getElementById('student-assigned-exams-box');
-            const list = (localStore.exams || []).filter(e => cleanClassName(e.className) === chosenClass);
-
-            if (list.length === 0) {
-                container.innerHTML = `<div class="text-gray-400 italic text-center py-4">Chưa có bài kiểm tra nào cho Lớp ${chosenClass}.</div>`;
-                return;
-            }
-
-            container.innerHTML = list.map(e => `
-                <div class="bg-white p-3 rounded-xl border border-pink-200 flex justify-between items-center shadow-sm">
-                    <div>
-                        <div class="font-bold text-gray-800 text-xs sm:text-sm">${e.examTitle}</div>
-                        <div class="text-[10px] text-gray-500">Lớp: ${e.className} | Ngày: ${e.examDate}</div>
-                    </div>
-                    <button type="button" onclick="enterExamRoom('${e.id}')" class="px-3.5 py-1.5 bg-rose-500 text-white font-bold rounded-xl text-xs shadow">Vào làm bài</button>
-                </div>
-            `).join('');
-        }
-
-        async function enterExamRoom(examId) {
-            activeExamForTest = (localStore.exams || []).find(e => e.id === examId);
-            if (!activeExamForTest) return;
-
-            document.getElementById('room-header-title').innerText = activeExamForTest.examTitle;
-            document.getElementById('room-header-sub').innerText = `Lớp ${activeExamForTest.className} | Ngày: ${activeExamForTest.examDate}`;
-            document.getElementById('room-exam-question-text').innerText = activeExamForTest.examContent;
-            document.getElementById('student-speech-result-box').value = '';
-            accumulatedFinalText = "";
-            currentSnapshots = [];
-            isMicActive = false;
-            updateMicButtonUI();
-
-            navigateTo('screen-student-exam-room');
-
-            const v = document.getElementById('webcam-video-element');
-            v.muted = true;
-            v.playsInline = true;
-            v.setAttribute('playsinline', '');
-            v.setAttribute('webkit-playsinline', '');
-
-            try {
-                if (!globalRealStream || !globalRealStream.active) {
-                    globalRealStream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: "user" },
-                        audio: false
-                    });
-                }
-                v.srcObject = globalRealStream;
-                v.onloadedmetadata = () => {
-                    v.play().catch(err => console.warn("Video play:", err));
-                };
-
-                timer1 = setTimeout(() => captureSnap(1), 2500);
-                timer2 = setTimeout(() => captureSnap(2), 6500);
-            } catch(e) {
-                console.warn("Lỗi camera:", e);
-                showToast("Không thể mở camera thiết bị!");
-            }
-        }
-
-        // --- NÉN ẢNH SIÊU NHẸ (DƯỚI 5KB) ĐỂ GÓI TIN KHÔNG BỊ PUBNUB HỦY BỎ ---
-        function captureSnap(idx) {
-            const v = document.getElementById('webcam-video-element');
-            const c = document.getElementById('hidden-snapshot-canvas');
-            if (!v || !c || !v.videoWidth) return;
-            
-            c.width = 100;
-            c.height = 75;
-            const ctx = c.getContext('2d');
-            ctx.drawImage(v, 0, 0, c.width, c.height);
-            
-            const compressedPhoto = c.toDataURL('image/jpeg', 0.25);
-            currentSnapshots.push(compressedPhoto);
-            document.getElementById('snapshot-status-tag').innerText = `📸 Ảnh giám sát: ${currentSnapshots.length}/2`;
-        }
-
-        function toggleSpeech() {
-            if (!isMicActive) {
-                isMicActive = true;
-                updateMicButtonUI();
-                showToast("Đang lắng nghe... Hãy nói câu trả lời!");
-                startSpeechEngine();
-            } else {
-                stopSpeechEngine();
-            }
-        }
-
-        function startSpeechEngine() {
-            if (!isMicActive) return;
-
-            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRec) {
-                showToast("Trình duyệt chưa hỗ trợ giọng nói! Hãy mở bằng Chrome hoặc Safari.");
-                isMicActive = false;
-                updateMicButtonUI();
-                return;
-            }
-
-            try {
-                if (globalSpeech) {
-                    try { globalSpeech.abort(); } catch(e){}
-                }
-
-                globalSpeech = new SpeechRec();
-                globalSpeech.lang = 'vi-VN';
-                globalSpeech.continuous = true;
-                globalSpeech.interimResults = true;
-                globalSpeech.maxAlternatives = 1;
-
-                globalSpeech.onresult = (event) => {
-                    let currentInterim = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        const transcriptPiece = event.results[i][0].transcript;
-                        if (event.results[i].isFinal) {
-                            accumulatedFinalText += transcriptPiece + ' ';
-                        } else {
-                            currentInterim += transcriptPiece;
-                        }
-                    }
-                    
-                    const box = document.getElementById('student-speech-result-box');
-                    if (box) {
-                        const totalText = (accumulatedFinalText + currentInterim).trim();
-                        if (totalText) {
-                            box.value = totalText;
-                        }
-                    }
-                };
-
-                globalSpeech.onerror = (event) => {
-                    console.warn("Speech recognition error:", event.error);
-                    if (event.error === 'not-allowed') {
-                        showToast("Vui lòng cho phép quyền Micro trên trình duyệt!");
-                        stopSpeechEngine();
-                    }
-                };
-
-                globalSpeech.onend = () => {
-                    if (isMicActive) {
-                        setTimeout(() => {
-                            if (isMicActive) {
-                                try {
-                                    globalSpeech.start();
-                                } catch(e) {
-                                    setTimeout(() => {
-                                        if (isMicActive) {
-                                            try { globalSpeech.start(); } catch(err){}
-                                        }
-                                    }, 400);
-                                }
-                            }
-                        }, 250);
-                    }
-                };
-
-                globalSpeech.start();
-            } catch(err) {
-                console.error("Lỗi khởi chạy mic:", err);
-                setTimeout(() => {
-                    if (isMicActive) {
-                        try { globalSpeech.start(); } catch(e){}
-                    }
-                }, 300);
-            }
-        }
-
-        function stopSpeechEngine() {
-            isMicActive = false;
-            if (globalSpeech) {
-                try {
-                    globalSpeech.stop();
-                } catch(e){}
-            }
-            updateMicButtonUI();
-            showToast("Đã dừng thu âm!");
-        }
-
-        function updateMicButtonUI() {
-            const btn = document.getElementById('btn-toggle-mic');
-            const icon = document.getElementById('mic-icon');
-            const txt = document.getElementById('mic-btn-text');
-
-            if (isMicActive) {
-                btn.className = "w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 animate-pulse";
-                icon.innerText = "🛑";
-                txt.innerText = "ĐANG THU ÂM... (BẤM ĐỂ DỪNG NÓI)";
-            } else {
-                btn.className = "w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2";
-                icon.innerText = "🎙️";
-                txt.innerText = "Bấm vào đây để BẬT MICRO nói";
-            }
-        }
-
-        function clearSpeechText() {
-            accumulatedFinalText = "";
-            document.getElementById('student-speech-result-box').value = '';
-            showToast("Đã xóa nội dung. Hãy bật micro để nói lại!");
-        }
-
-        function stopHardware() {
-            clearTimeout(timer1);
-            clearTimeout(timer2);
-            stopSpeechEngine();
-        }
-
-        // --- NỘP BÀI: TỰ ĐỘNG THỬ LẠI NẾU NGHẼN MẠNG ---
-        function submitStudentExamAction() {
-            const ans = document.getElementById('student-speech-result-box').value.trim();
-            if (!ans) {
-                showToast("Bạn chưa có câu trả lời bằng giọng nói!");
-                return;
-            }
-
-            stopSpeechEngine();
-
-            const now = new Date();
-            const subId = 'sub_' + Date.now();
-            const sub = {
-                id: subId,
-                studentName: currentStudent.name,
-                className: currentStudent.className,
-                examTitle: activeExamForTest.examTitle,
-                examRubric: activeExamForTest.examRubric,
-                submitTime: `${now.getHours()}:${now.getMinutes()} - ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`,
-                answer: ans,
-                snapshots: currentSnapshots,
-                score: '--',
-                status: 'Chờ chấm',
-                comment: ''
-            };
-
-            localStore.submissions = [sub, ...localStore.submissions.filter(s => s.id !== subId)];
-            localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
-
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "NEW_SUBMISSION", payload: sub }
-            }, function(status, response) {
-                if (status.error) {
-                    console.warn("Gói tin nặng, đang gửi lại bản tối giản:", status);
-                    // Nếu lỗi do dung lượng, tự động bỏ ảnh để đảm bảo bài nộp đến nơi 100%
-                    sub.snapshots = [];
-                    pubnub.publish({
-                        channel: REALTIME_CHANNEL,
-                        message: { type: "NEW_SUBMISSION", payload: sub }
-                    });
-                }
-                showToast("Đã nộp bài thành công về máy giáo viên!");
-            });
-
-            navigateTo('screen-student-dashboard');
-        }
-
-        function exitExamRoom() {
-            stopHardware();
-            navigateTo('screen-student-dashboard');
-        }
-
-        function renderStudentPersonalResults() {
-            if (!currentStudent) return;
-            const container = document.getElementById('student-results-cards-container');
-            const list = (localStore.submissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
-
-            if (list.length === 0) {
-                container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Bạn chưa nộp bài thi nào.</div>';
-                return;
-            }
-
-            container.innerHTML = list.map(s => `
-                <div class="bg-white p-3.5 rounded-xl border border-pink-200 space-y-1.5 shadow-sm">
-                    <div class="flex justify-between items-center font-bold">
-                        <span class="text-gray-800">${s.examTitle}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full ${s.status === 'Đã duyệt' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span>
-                    </div>
-                    <div class="text-xs text-gray-700">Điểm số: <b class="text-pink-600 text-sm font-extrabold">${s.score}</b></div>
-                    <div class="text-xs text-gray-600 bg-pink-50/50 p-2.5 rounded-lg border border-pink-100 whitespace-pre-wrap leading-relaxed">${s.comment || 'Đang chờ giáo viên duyệt...'}</div>
-                </div>
-            `).join('');
-        }
-
-        window.addEventListener('load', () => {
-            refreshAllScreens();
-        });
-    </script>
-</body>
-</html>
+                        throw new Error("LỖI QUÁ TẢI (429): Bạn đã gọi AI quá nhiều lần. Vui lòng chờ 1-2 phút rồi bấm lại!");
+                    } else if
