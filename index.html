@@ -8,9 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS (xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- PubNub SDK -->
-    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.4.5.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Times+New+Roman&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -25,14 +23,11 @@
             background: #000000 !important;
             border-radius: 1rem !important;
             overflow: hidden !important;
-            contain: strict !important;
         }
         .camera-video-player {
             width: 100% !important;
             height: 100% !important;
             object-fit: cover !important;
-            pointer-events: none !important;
-            -webkit-user-select: none !important;
         }
     </style>
 </head>
@@ -51,7 +46,7 @@
                 <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Hỏi đáp trực tiếp bằng Camera & Giọng nói</p>
                 <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-green-100 text-green-700">
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span>Đồng bộ máy chủ đa thiết bị sẵn sàng</span>
+                    <span>Hệ thống trực tuyến sẵn sàng</span>
                 </div>
             </div>
 
@@ -64,21 +59,21 @@
                     <span id="perm-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full">Chờ cấp quyền</span>
                 </div>
                 <p class="text-[11px] text-gray-600 leading-relaxed">
-                    Bấm nút bên dưới và chọn <b>"Cho phép"</b> để bật camera phục vụ giám sát khi làm bài.
+                    Bấm nút bên dưới và chọn <b>"Cho phép" (Allow)</b> để kích hoạt camera giám sát khi trả lời bài.
                 </p>
                 <div class="pt-1">
-                    <button type="button" id="btn-request-early-perm" onclick="requestDeviceAccessEarly()" class="w-full py-2.5 px-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                    <button type="button" id="btn-request-early-perm" onclick="requestDeviceAccessEarly()" class="w-full py-2.5 px-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
                         <span>🔓</span> Kích hoạt Camera ngay
                     </button>
                 </div>
             </div>
             
             <div class="space-y-3 pt-1 max-w-md mx-auto">
-                <button type="button" onclick="navigateTo('screen-teacher-login')" class="w-full py-3 sm:py-3.5 px-6 bg-pink-500 hover:bg-pink-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-pink-500/25 transition flex items-center justify-center gap-3">
+                <button type="button" onclick="navigateTo('screen-teacher-login')" class="w-full py-3 sm:py-3.5 px-6 bg-pink-500 hover:bg-pink-600 active:scale-[0.98] text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-pink-500/25 transition flex items-center justify-center gap-3 cursor-pointer">
                     <span class="text-xl">👩‍🏫</span> DÀNH CHO GIÁO VIÊN
                 </button>
                 
-                <button type="button" onclick="navigateTo('screen-student-login')" class="w-full py-3 sm:py-3.5 px-6 bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-rose-500/25 transition flex items-center justify-center gap-3">
+                <button type="button" onclick="navigateTo('screen-student-login')" class="w-full py-3 sm:py-3.5 px-6 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-rose-500/25 transition flex items-center justify-center gap-3 cursor-pointer">
                     <span class="text-xl">🎒</span> DÀNH CHO HỌC SINH
                 </button>
             </div>
@@ -88,7 +83,7 @@
         <div id="screen-teacher-login" class="hidden space-y-4">
             <div class="flex items-center justify-between border-b border-pink-100 pb-3">
                 <h2 class="text-lg sm:text-xl font-bold text-pink-600 flex items-center gap-2"><span>👩‍🏫</span> Đăng Nhập Giáo Viên</h2>
-                <button type="button" onclick="navigateTo('screen-main')" class="text-gray-400 hover:text-pink-600 text-sm font-semibold">← Quay lại</button>
+                <button type="button" onclick="navigateTo('screen-main')" class="text-gray-400 hover:text-pink-600 text-sm font-semibold cursor-pointer">← Quay lại</button>
             </div>
             <form onsubmit="handleTeacherSignIn(event)" class="space-y-3 sm:space-y-4">
                 <div>
@@ -99,10 +94,10 @@
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Mật khẩu</label>
                     <input type="password" id="teacher-login-password" placeholder="Nhập mật khẩu..." class="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
                 </div>
-                <button type="submit" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition text-sm">
+                <button type="submit" class="w-full py-3 bg-pink-500 hover:bg-pink-600 active:scale-[0.98] text-white font-bold rounded-2xl shadow-md transition text-sm cursor-pointer">
                     Đăng Nhập Quản Trị
                 </button>
-                <p class="text-[11px] text-gray-400 text-center italic">* Nhập tên và mật khẩu ban đầu để tự động ghi nhớ.</p>
+                <p class="text-[11px] text-gray-400 text-center italic">* Nhập tài khoản và mật khẩu bất kỳ ở lần đầu để hệ thống tự ghi nhớ.</p>
             </form>
         </div>
 
@@ -111,15 +106,15 @@
             <div class="flex justify-between items-center border-b border-pink-100 pb-3">
                 <div>
                     <h2 class="text-lg sm:text-xl font-bold text-pink-600">BÀN LÀM VIỆC GIÁO VIÊN</h2>
-                    <p class="text-xs text-gray-500" id="teacher-header-user">Xin chào, Thầy/Cô</p>
+                    <p class="text-xs text-gray-500" id="teacher-header-user">Xin chào, Cô</p>
                 </div>
-                <button type="button" onclick="navigateTo('screen-main')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-xl text-xs">Đăng xuất</button>
+                <button type="button" onclick="navigateTo('screen-main')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-xl text-xs cursor-pointer">Đăng xuất</button>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 py-2">
-                <button type="button" onclick="navigateTo('screen-teacher-create-exam')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+                <button type="button" onclick="navigateTo('screen-teacher-create-exam')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
                     <span class="text-3xl">📝</span><span>Ra Đề Kiểm Tra</span>
                 </button>
-                <button type="button" onclick="openTeacherGradingScreen()" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+                <button type="button" onclick="navigateTo('screen-teacher-grade-exam')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
                     <span class="text-3xl">🤖</span><span>Chấm Bài Học Sinh</span>
                 </button>
             </div>
@@ -129,7 +124,7 @@
         <div id="screen-teacher-create-exam" class="hidden space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Ra Đề Kiểm Tra Bài Cũ</h2>
-                <button type="button" onclick="navigateTo('screen-teacher-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Đóng</button>
+                <button type="button" onclick="navigateTo('screen-teacher-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold cursor-pointer">✕ Đóng</button>
             </div>
             
             <div class="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
@@ -146,7 +141,7 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-xs">Lớp học</label>
-                        <input type="text" id="exam-class" placeholder="VD: 1 hoặc 10A1" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs uppercase bg-white">
+                        <input type="text" id="exam-class" placeholder="VD: 12A1" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs uppercase bg-white">
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-xs">Ngày (dd/mm/yyyy)</label>
@@ -155,24 +150,24 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-semibold mb-1 text-xs">Tiêu đề bài kiểm tra</label>
-                    <input type="text" id="exam-title" placeholder="VD: Kiểm tra bài cũ..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white">
+                    <input type="text" id="exam-title" placeholder="VD: Hóa 12 - Kiểm tra Saccharose và Maltose" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white">
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-semibold mb-1 text-xs">Nội dung câu hỏi đề bài</label>
-                    <textarea id="exam-content" rows="2" placeholder="Nhập câu hỏi học sinh cần trả lời bằng giọng nói..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white"></textarea>
+                    <label class="block text-gray-700 font-semibold mb-1 text-xs">Nội dung câu hỏi</label>
+                    <textarea id="exam-content" rows="2" placeholder="Nhập câu hỏi để học sinh trả lời bằng giọng nói..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white"></textarea>
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-semibold mb-1 text-xs">Barem đáp án & Mọi yêu cầu cho AI chấm:</label>
-                    <textarea id="exam-rubric" rows="4" placeholder="Nhập tiêu chuẩn chấm và mọi mong muốn cho AI tại đây..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white leading-relaxed"></textarea>
+                    <label class="block text-gray-700 font-semibold mb-1 text-xs">Barem đáp án & Tiêu chuẩn chấm thang 10:</label>
+                    <textarea id="exam-rubric" rows="4" placeholder="Nhập barem thang điểm 10 chi tiết cho AI chấm..." class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-xs bg-white leading-relaxed"></textarea>
                 </div>
             </div>
 
             <div class="flex gap-2">
-                <button type="button" onclick="clearExamForm()" class="w-1/3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition">
+                <button type="button" onclick="clearExamForm()" class="w-1/3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition cursor-pointer">
                     Xóa trắng form
                 </button>
-                <button type="button" id="btn-save-exam" onclick="saveAndBroadcastExam()" class="w-2/3 py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2">
-                    <span id="btn-save-exam-icon">📡</span> <span id="btn-save-exam-text">Lưu Đề & Truyền Đến Máy Học Sinh</span>
+                <button type="button" id="btn-save-exam" onclick="saveExamAction()" class="w-2/3 py-2.5 bg-pink-500 hover:bg-pink-600 active:scale-[0.98] text-white font-bold rounded-xl shadow-md transition text-xs flex items-center justify-center gap-2 cursor-pointer">
+                    <span>💾</span> <span id="btn-save-exam-text">Lưu & Phát Hành Đề</span>
                 </button>
             </div>
         </div>
@@ -181,7 +176,7 @@
         <div id="screen-teacher-grade-exam" class="hidden space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>🤖</span> Chấm Bài & Quản Lý Kết Quả</h2>
-                <button type="button" onclick="navigateTo('screen-teacher-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Đóng</button>
+                <button type="button" onclick="navigateTo('screen-teacher-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold cursor-pointer">✕ Đóng</button>
             </div>
             
             <div class="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
@@ -199,27 +194,27 @@
                         <h4 class="font-bold text-gray-800 text-xs sm:text-sm" id="grading-student-heading">Học sinh: --</h4>
                         <p class="text-[11px] text-gray-500" id="grading-exam-heading">Đề: --</p>
                     </div>
-                    <button type="button" onclick="closeGradingWorkspace()" class="text-gray-400 hover:text-gray-600 text-xs font-bold">✕ Đóng</button>
+                    <button type="button" onclick="closeGradingWorkspace()" class="text-gray-400 hover:text-gray-600 text-xs font-bold cursor-pointer">✕ Đóng</button>
                 </div>
 
                 <div>
-                    <label class="block text-gray-700 font-semibold text-[11px] mb-1">📸 Ảnh chụp giám sát từ camera:</label>
+                    <label class="block text-gray-700 font-semibold text-[11px] mb-1">📸 Ảnh chụp từ camera:</label>
                     <div id="grading-photos-gallery" class="flex gap-2"></div>
                 </div>
 
                 <div>
-                    <label class="block text-gray-700 font-semibold text-[11px] mb-1">🎤 Câu trả lời thực tế của học sinh:</label>
+                    <label class="block text-gray-700 font-semibold text-[11px] mb-1">🎤 Câu trả lời giọng nói của học sinh:</label>
                     <div id="grading-student-transcript" class="text-xs text-gray-800 bg-white p-3 rounded-xl border border-gray-200 max-h-28 overflow-y-auto font-medium whitespace-pre-wrap leading-relaxed"></div>
                 </div>
 
                 <div>
-                    <label class="block text-indigo-800 font-semibold text-[11px] mb-1">📋 Barem đối chiếu & Yêu cầu của đề bài:</label>
+                    <label class="block text-indigo-800 font-semibold text-[11px] mb-1">📋 Barem đối chiếu:</label>
                     <div id="grading-exam-rubric-view" class="text-[11px] text-indigo-900 bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 whitespace-pre-wrap leading-relaxed max-h-28 overflow-y-auto"></div>
                 </div>
 
                 <!-- Nút bấm AI Chấm bài -->
-                <button type="button" id="btn-ai-grader" onclick="triggerAIGrading()" class="w-full py-2.5 px-4 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition">
-                    <span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem
+                <button type="button" id="btn-ai-grader" onclick="triggerAIGrading()" class="w-full py-2.5 px-4 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-600 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition cursor-pointer">
+                    <span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem Thang 10
                 </button>
 
                 <div class="grid grid-cols-3 gap-2.5 items-start">
@@ -228,18 +223,18 @@
                         <input type="text" id="grading-score-field" placeholder="VD: 8.5/10" class="w-full px-3 py-2 rounded-xl border border-pink-300 font-extrabold text-pink-600 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pink-500">
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-gray-700 font-semibold text-[11px] mb-1">Lời nhận xét của Thầy/Cô (AI biên soạn):</label>
-                        <textarea id="grading-comment-field" rows="5" placeholder="Nhận xét tự nhiên, chân thật theo barem..." class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 leading-relaxed"></textarea>
+                        <label class="block text-gray-700 font-semibold text-[11px] mb-1">Nhận xét của Cô:</label>
+                        <textarea id="grading-comment-field" rows="4" placeholder="Nhận xét chi tiết cho học sinh..." class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 leading-relaxed"></textarea>
                     </div>
                 </div>
 
-                <button type="button" onclick="saveAndBroadcastGrading()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl shadow-md transition">
-                    <span>✓</span> Duyệt và Gửi kết quả về máy học sinh
+                <button type="button" onclick="saveAndBroadcastGrading()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer">
+                    <span>✓</span> Duyệt Điểm & Lưu Kết Quả
                 </button>
             </div>
 
-            <button type="button" onclick="exportResultsToExcel()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 text-xs sm:text-sm">
-                <span>📗</span> Xuất Bảng tính Excel (.xlsx chuẩn chính quy)
+            <button type="button" onclick="exportResultsToExcel()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer">
+                <span>📗</span> Xuất Bảng Điểm Excel (.xlsx)
             </button>
         </div>
 
@@ -248,7 +243,7 @@
             <div class="w-full max-w-sm mx-auto space-y-4">
                 <div class="flex items-center justify-between border-b border-pink-100 pb-2">
                     <h2 class="text-lg sm:text-xl font-bold text-pink-600">Đăng Nhập Học Sinh</h2>
-                    <button type="button" onclick="navigateTo('screen-main')" class="text-pink-500 text-xs font-semibold">← Quay lại</button>
+                    <button type="button" onclick="navigateTo('screen-main')" class="text-pink-500 text-xs font-semibold cursor-pointer">← Quay lại</button>
                 </div>
                 <form onsubmit="handleStudentLogin(event)" class="space-y-3">
                     <div>
@@ -257,13 +252,13 @@
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-xs">Lớp học</label>
-                        <input type="text" id="student-class-input" placeholder="Lớp (VD: 1 hoặc 10A1)..." class="w-full px-4 py-2.5 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20 uppercase" required>
+                        <input type="text" id="student-class-input" placeholder="Lớp (VD: 12A1)..." class="w-full px-4 py-2.5 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20 uppercase" required>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-semibold mb-1 text-xs">Mật khẩu</label>
                         <input type="password" id="student-pass-input" placeholder="Nhập mật khẩu..." class="w-full px-4 py-2.5 rounded-2xl border border-pink-200 focus:ring-2 focus:ring-pink-500 text-sm bg-pink-50/20" required>
                     </div>
-                    <button type="submit" class="w-full py-3 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl shadow-lg text-sm">
+                    <button type="submit" class="w-full py-3 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-bold rounded-2xl shadow-lg text-sm cursor-pointer">
                         Vào Không Gian Kiểm Tra
                     </button>
                 </form>
@@ -277,13 +272,13 @@
                     <h3 class="font-bold text-pink-700 text-sm sm:text-base" id="student-card-name">Học sinh: --</h3>
                     <p class="text-xs text-gray-500" id="student-card-class">Lớp: --</p>
                 </div>
-                <button type="button" onclick="handleStudentLogout()" class="px-3 py-1.5 bg-white border border-pink-200 text-pink-700 text-xs font-bold rounded-xl">Đăng xuất</button>
+                <button type="button" onclick="handleStudentLogout()" class="px-3 py-1.5 bg-white border border-pink-200 text-pink-700 text-xs font-bold rounded-xl cursor-pointer">Đăng xuất</button>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 py-1">
-                <button type="button" onclick="navigateTo('screen-student-exam-select')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+                <button type="button" onclick="navigateTo('screen-student-exam-select')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
                     <span class="text-3xl">📝</span><span>Vào Kiểm Tra Bài Cũ</span>
                 </button>
-                <button type="button" onclick="navigateTo('screen-student-results')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2">
+                <button type="button" onclick="navigateTo('screen-student-results')" class="py-5 sm:py-6 px-4 bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-base rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
                     <span class="text-3xl">📊</span><span>Xem Kết Quả Chấm Điểm</span>
                 </button>
             </div>
@@ -293,7 +288,7 @@
         <div id="screen-student-exam-select" class="hidden space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
                 <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📝</span> Chọn Bài Kiểm Tra</h2>
-                <button type="button" onclick="navigateTo('screen-student-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Quay lại</button>
+                <button type="button" onclick="navigateTo('screen-student-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold cursor-pointer">✕ Quay lại</button>
             </div>
             <div class="space-y-3">
                 <div>
@@ -315,31 +310,31 @@
                     <h2 class="text-sm sm:text-base font-bold text-pink-600" id="room-header-title">Bài Kiểm Tra</h2>
                     <p class="text-[11px] text-gray-500" id="room-header-sub">Lớp -- | Ngày --</p>
                 </div>
-                <button type="button" onclick="exitExamRoom()" class="text-red-500 font-bold text-xs px-2.5 py-1 bg-red-50 rounded-lg border border-red-200">Thoát</button>
+                <button type="button" onclick="exitExamRoom()" class="text-red-500 font-bold text-xs px-2.5 py-1 bg-red-50 rounded-lg border border-red-200 cursor-pointer">Thoát</button>
             </div>
 
             <!-- Khung camera -->
             <div class="camera-container-box border-2 border-pink-200">
-                <video id="webcam-video-element" class="camera-video-player" playsinline webkit-playsinline muted autoplay></video>
+                <video id="webcam-video-element" class="camera-video-player" playsinline muted autoplay></video>
                 <canvas id="hidden-snapshot-canvas" class="hidden"></canvas>
                 
                 <div class="absolute top-2 left-2 bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1.5 shadow z-10">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                    <span>CAMERA THỰC ĐANG BẬT</span>
+                    <span>CAMERA GIÁM SÁT</span>
                 </div>
                 <div class="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full z-10" id="snapshot-status-tag">
-                    📸 Ảnh giám sát: 0/2
+                    📸 Ảnh: 0/2
                 </div>
             </div>
 
             <!-- Câu hỏi đề bài -->
-            <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-2 sm:p-2.5 rounded-xl border border-pink-200 text-xs text-gray-800">
+            <div class="bg-gradient-to-r from-pink-50 to-rose-50 p-2.5 rounded-xl border border-pink-200 text-xs text-gray-800">
                 <strong class="text-pink-700">Câu hỏi:</strong> <span id="room-exam-question-text" class="whitespace-pre-wrap leading-relaxed">--</span>
             </div>
 
             <!-- Nút bật/dừng Micro -->
             <div>
-                <button type="button" id="btn-toggle-mic" onclick="toggleSpeech()" class="w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
+                <button type="button" id="btn-toggle-mic" onclick="toggleSpeech()" class="w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
                     <span id="mic-icon">🎙️</span> <span id="mic-btn-text">Bấm vào đây để BẬT MICRO nói</span>
                 </button>
             </div>
@@ -348,67 +343,26 @@
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <label class="text-[11px] font-bold text-gray-700">Văn bản nhận diện giọng nói (Chỉ đọc):</label>
-                    <span class="text-[10px] text-red-500 font-semibold bg-red-50 px-1.5 py-0.5 rounded border border-red-200">🔒 Khóa bàn phím gõ tay</span>
+                    <span class="text-[10px] text-red-500 font-semibold bg-red-50 px-1.5 py-0.5 rounded border border-red-200">🔒 Chống gõ tay</span>
                 </div>
-                <textarea id="student-speech-result-box" rows="3" readonly placeholder="Bấm nút 'BẬT MICRO' ở trên rồi nói. Lời nói sẽ tự động chuyển thành chữ tại đây..." class="w-full px-3 py-2 rounded-xl border border-pink-200 text-xs bg-gray-50 text-gray-800 font-medium resize-none focus:outline-none cursor-not-allowed select-none"></textarea>
+                <textarea id="student-speech-result-box" rows="3" readonly placeholder="Bấm 'BẬT MICRO' rồi trả lời bằng giọng nói..." class="w-full px-3 py-2 rounded-xl border border-pink-200 text-xs bg-gray-50 text-gray-800 font-medium resize-none focus:outline-none"></textarea>
             </div>
 
             <div class="flex gap-2 pt-0.5">
-                <button type="button" onclick="clearSpeechText()" class="w-1/2 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs">Xóa & Nói lại</button>
-                <button type="button" id="btn-submit-exam" onclick="submitStudentExamAction()" class="w-1/2 py-2 px-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs">Nộp bài</button>
+                <button type="button" onclick="clearSpeechText()" class="w-1/2 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs cursor-pointer">Nói lại</button>
+                <button type="button" id="btn-submit-exam" onclick="submitStudentExamAction()" class="w-1/2 py-2 px-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs cursor-pointer">Nộp bài</button>
             </div>
         </div>
 
         <!-- XEM KẾT QUẢ HỌC SINH -->
         <div id="screen-student-results" class="hidden space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center border-b border-pink-100 pb-2">
-                <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📊</span> Kết Quả Kiểm Tra Của Bạn</h2>
-                <button type="button" onclick="navigateTo('screen-student-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold">✕ Quay lại</button>
+                <h2 class="text-base sm:text-lg font-bold text-pink-600 flex items-center gap-2"><span>📊</span> Kết Quả Kiểm Tra</h2>
+                <button type="button" onclick="navigateTo('screen-student-dashboard')" class="text-gray-400 hover:text-pink-600 text-xs font-semibold cursor-pointer">✕ Quay lại</button>
             </div>
             <div id="student-results-cards-container" class="bg-pink-50/40 p-3 rounded-2xl border border-pink-200 space-y-2.5 max-h-72 overflow-y-auto text-xs"></div>
         </div>
 
-    </div>
-
-    <!-- MODAL XEM CHI TIẾT ĐỀ THI ĐẦY ĐỦ -->
-    <div id="modal-view-exam" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-lg rounded-3xl p-5 sm:p-6 shadow-2xl border border-pink-200 space-y-4 max-h-[85vh] flex flex-col">
-            <div class="flex justify-between items-center border-b border-pink-100 pb-3">
-                <h3 class="text-base sm:text-lg font-bold text-pink-700 flex items-center gap-2">
-                    <span>📋</span> Chi Tiết Đề Kiểm Tra
-                </h3>
-                <button type="button" onclick="closeExamModal()" class="text-gray-400 hover:text-pink-600 text-base font-bold p-1">✕</button>
-            </div>
-            <div class="space-y-3.5 overflow-y-auto pr-1 flex-1 text-xs">
-                <div>
-                    <label class="block text-gray-500 font-semibold mb-0.5 text-[11px]">Tiêu đề đề thi:</label>
-                    <div id="modal-exam-title" class="font-bold text-gray-800 text-sm">--</div>
-                </div>
-                <div class="grid grid-cols-2 gap-2 bg-pink-50/60 p-2.5 rounded-xl border border-pink-100">
-                    <div>
-                        <span class="text-gray-500 text-[11px]">Lớp học:</span>
-                        <div id="modal-exam-class" class="font-bold text-pink-600">--</div>
-                    </div>
-                    <div>
-                        <span class="text-gray-500 text-[11px]">Ngày kiểm tra:</span>
-                        <div id="modal-exam-date" class="font-bold text-pink-600">--</div>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-gray-700 font-bold mb-1 text-[11px]">Nội dung câu hỏi:</label>
-                    <div id="modal-exam-content" class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-gray-800 whitespace-pre-wrap leading-relaxed">--</div>
-                </div>
-                <div>
-                    <label class="block text-indigo-700 font-bold mb-1 text-[11px]">Barem điểm & Tiêu chuẩn chấm:</label>
-                    <div id="modal-exam-rubric" class="bg-indigo-50/60 p-3 rounded-xl border border-indigo-200 text-indigo-900 whitespace-pre-wrap leading-relaxed">--</div>
-                </div>
-            </div>
-            <div class="pt-2 border-t border-pink-100">
-                <button type="button" onclick="closeExamModal()" class="w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-xs transition">
-                    Đóng cửa sổ
-                </button>
-            </div>
-        </div>
     </div>
 
     <!-- TOAST THÔNG BÁO -->
@@ -417,16 +371,7 @@
     </div>
 
     <script>
-        // --- 1. PUBNUB REALTIME TRUYỀN PHÁT DỮ LIỆU ĐA THIẾT BỊ ---
-        const pubnub = new PubNub({
-            publishKey: "demo",
-            subscribeKey: "demo",
-            userId: "u_" + Math.random().toString(36).substring(2, 9),
-            ssl: true
-        });
-
-        const REALTIME_CHANNEL = "kiem_tra_bai_cu_channel_prod_2026";
-
+        // --- BỘ LƯU TRỮ TRỰC TIẾP AN TOÀN ---
         let localStore = {
             exams: [],
             submissions: [],
@@ -440,100 +385,8 @@
             if (s) localStore.submissions = JSON.parse(s);
             const t = localStorage.getItem('kiemtra_teachers');
             if (t) localStore.teachers = JSON.parse(t);
-        } catch(err){}
-
-        pubnub.subscribe({ channels: [REALTIME_CHANNEL] });
-
-        pubnub.addListener({
-            message: function(event) {
-                const msg = event.message;
-                if (!msg || !msg.type) return;
-
-                if (msg.type === "NEW_EXAM") {
-                    const exam = msg.payload;
-                    localStore.exams = [exam, ...localStore.exams.filter(x => x.id !== exam.id)];
-                    localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
-                    refreshAllScreens();
-                } else if (msg.type === "DELETE_EXAM") {
-                    const examId = msg.payload;
-                    localStore.exams = localStore.exams.filter(x => x.id !== examId);
-                    localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
-                    refreshAllScreens();
-                } else if (msg.type === "NEW_SUBMISSION") {
-                    const sub = msg.payload;
-                    localStore.submissions = [sub, ...localStore.submissions.filter(x => x.id !== sub.id)];
-                    localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
-                    refreshAllScreens();
-                    showToast(`Có bài nộp mới từ ${sub.studentName}!`);
-                } else if (msg.type === "DELETE_SUBMISSION") {
-                    const subId = msg.payload;
-                    localStore.submissions = localStore.submissions.filter(x => x.id !== subId);
-                    localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
-                    refreshAllScreens();
-                } else if (msg.type === "UPDATE_GRADE") {
-                    const incomingSub = msg.payload;
-                    const idx = localStore.submissions.findIndex(x => x.id === incomingSub.id);
-                    if (idx !== -1) {
-                        localStore.submissions[idx].score = incomingSub.score;
-                        localStore.submissions[idx].comment = incomingSub.comment;
-                        localStore.submissions[idx].status = incomingSub.status;
-                        localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
-                        refreshAllScreens();
-                    }
-                } else if (msg.type === "REQUEST_SYNC") {
-                    if (localStore.exams.length > 0) {
-                        pubnub.publish({
-                            channel: REALTIME_CHANNEL,
-                            message: { type: "SYNC_EXAMS_RESPONSE", payload: localStore.exams }
-                        });
-                    }
-                } else if (msg.type === "REQUEST_SUBMISSIONS_SYNC") {
-                    if (localStore.submissions.length > 0) {
-                        const cleanSubs = localStore.submissions.map(s => ({
-                            ...s,
-                            snapshots: []
-                        }));
-                        pubnub.publish({
-                            channel: REALTIME_CHANNEL,
-                            message: { type: "SYNC_SUBMISSIONS_RESPONSE", payload: cleanSubs }
-                        });
-                    }
-                } else if (msg.type === "SYNC_EXAMS_RESPONSE") {
-                    const incoming = msg.payload;
-                    if (Array.isArray(incoming)) {
-                        const map = new Map();
-                        [...incoming, ...localStore.exams].forEach(item => {
-                            if (item && item.id) map.set(item.id, item);
-                        });
-                        localStore.exams = Array.from(map.values());
-                        localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
-                        refreshAllScreens();
-                    }
-                } else if (msg.type === "SYNC_SUBMISSIONS_RESPONSE") {
-                    const incomingSubs = msg.payload;
-                    if (Array.isArray(incomingSubs)) {
-                        const map = new Map();
-                        [...incomingSubs, ...localStore.submissions].forEach(item => {
-                            if (item && item.id) map.set(item.id, item);
-                        });
-                        localStore.submissions = Array.from(map.values());
-                        localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
-                        refreshAllScreens();
-                    }
-                }
-            }
-        });
-
-        setTimeout(() => {
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "REQUEST_SYNC" }
-            });
-        }, 1000);
-
-        function cleanClassName(str) {
-            if (!str) return '';
-            return str.toString().trim().toUpperCase().replace(/^L[ỚO]P\s*/i, '').trim();
+        } catch(err) {
+            console.warn("Storage load error:", err);
         }
 
         let globalRealStream = null;
@@ -546,10 +399,17 @@
         let timer1 = null, timer2 = null;
 
         function showToast(msg) {
-            const toast = document.getElementById('app-toast');
-            document.getElementById('toast-text').innerText = msg;
-            toast.classList.remove('translate-y-24', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-24', 'opacity-0'), 3000);
+            try {
+                const toast = document.getElementById('app-toast');
+                document.getElementById('toast-text').innerText = msg;
+                toast.classList.remove('translate-y-24', 'opacity-0');
+                setTimeout(() => toast.classList.add('translate-y-24', 'opacity-0'), 3000);
+            } catch(e) {}
+        }
+
+        function cleanClassName(str) {
+            if (!str) return '';
+            return str.toString().trim().toUpperCase().replace(/^L[ỚO]P\s*/i, '').trim();
         }
 
         function navigateTo(targetId) {
@@ -576,30 +436,23 @@
             renderStudentPersonalResults();
         }
 
-        function openTeacherGradingScreen() {
-            navigateTo('screen-teacher-grade-exam');
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "REQUEST_SUBMISSIONS_SYNC" }
-            });
-        }
-
         // --- CẤP QUYỀN CAMERA SỚM ---
         async function requestDeviceAccessEarly() {
             const btn = document.getElementById('btn-request-early-perm');
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: "user" },
-                    audio: false
+                    audio: true
                 });
                 globalRealStream = stream;
                 document.getElementById('perm-badge').innerText = "Đã cấp quyền ✓";
                 document.getElementById('perm-badge').className = "text-[10px] bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full";
                 btn.className = "w-full py-2.5 px-4 bg-green-600 text-white font-bold text-xs rounded-xl shadow-md";
-                btn.innerText = "✓ Camera Đã Sẵn Sàng";
-                showToast("Đã kích hoạt thiết bị thành công!");
+                btn.innerText = "✓ Camera & Micro Đã Sẵn Sàng";
+                showToast("Đã cấp quyền Camera và Micro thành công!");
             } catch(e) {
-                showToast("Vui lòng cấp quyền Camera cho trình duyệt!");
+                console.error("Camera perm error:", e);
+                showToast("Vui lòng bấm 'Cho phép' khi trình duyệt hỏi quyền Camera/Micro!");
             }
         }
 
@@ -613,107 +466,122 @@
                 localStore.teachers[u] = p;
                 localStorage.setItem('kiemtra_teachers', JSON.stringify(localStore.teachers));
             } else if (localStore.teachers[u] !== p) {
-                showToast("Mật khẩu không đúng với mật khẩu ban đầu!");
+                showToast("Mật khẩu không đúng với mật khẩu đã lưu!");
                 return;
             }
 
-            document.getElementById('teacher-header-user').innerText = `Xin chào, Thầy/Cô ${u}`;
+            document.getElementById('teacher-header-user').innerText = `Xin chào, Cô ${u}`;
             navigateTo('screen-teacher-dashboard');
         }
 
         function formatDateInput(input) {
             let v = input.value.replace(/\D/g, '').slice(0, 8);
-            if (v.length >= 5) input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`; else if (v.length >= 3) input.value = `${v.slice(0, 2)}/${v.slice(2)}`; else input.value = v; }  function saveAndBroadcastExam() { const rawClass = document.getElementById('exam-class').value.trim(); const className = cleanClassName(rawClass); const date = document.getElementById('exam-date').value.trim(); const title = document.getElementById('exam-title').value.trim(); const content = document.getElementById('exam-content').value.trim(); const rubric = document.getElementById('exam-rubric').value.trim(); const editId = document.getElementById('editing-exam-id').value;  if (!className \vert{}\vert{} !date \vert{}\vert{} !title \vert{}\vert{} !content) { showToast("Vui lòng điền đủ Lớp, Ngày, Tên đề và Câu hỏi!"); return; }  const examId = editId ? editId : ('exam_' + Date.now()); const examObj = { id: examId, className: className, examDate: date, examTitle: title, examContent: content, examRubric: rubric \vert{}\vert{} "Đúng trọng tâm" };  localStore.exams = [examObj, ...localStore.exams.filter(e => e.id !== examId)]; localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams)); renderCreatedExamsTable();  clearExamForm(); showToast(editId ? "Đã cập nhật đề thành công!" : "Đã lưu đề mới và truyền đến học sinh!");  pubnub.publish({ channel: REALTIME_CHANNEL, message: { type: "NEW_EXAM", payload: examObj } }); }  function renderCreatedExamsTable() { const list = localStore.exams \vert{}\vert{} []; const container = document.getElementById('created-exams-list'); document.getElementById('exam-count-badge').innerText = `${list.length} đề`;
+            if (v.length >= 5) input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+            else if (v.length >= 3) input.value = `${v.slice(0, 2)}/${v.slice(2)}`;
+            else input.value = v;
+        }
+
+        function saveExamAction() {
+            const rawClass = document.getElementById('exam-class').value.trim();
+            const className = cleanClassName(rawClass);
+            const date = document.getElementById('exam-date').value.trim();
+            const title = document.getElementById('exam-title').value.trim();
+            const content = document.getElementById('exam-content').value.trim();
+            const rubric = document.getElementById('exam-rubric').value.trim();
+            const editId = document.getElementById('editing-exam-id').value;
+
+            if (!className || !date || !title || !content) {
+                showToast("Vui lòng điền đủ Lớp, Ngày, Tên đề và Câu hỏi!");
+                return;
+            }
+
+            const examId = editId ? editId : ('exam_' + Date.now());
+            const examObj = {
+                id: examId,
+                className: className,
+                examDate: date,
+                examTitle: title,
+                examContent: content,
+                examRubric: rubric || "Đánh giá mức độ hiểu bài và nắm vững kiến thức theo thang điểm 10."
+            };
+
+            localStore.exams = [examObj, ...localStore.exams.filter(e => e.id !== examId)];
+            localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
+            renderCreatedExamsTable();
+            clearExamForm();
+            showToast("Đã lưu đề kiểm tra thành công!");
+        }
+
+        function renderCreatedExamsTable() {
+            const list = localStore.exams || [];
+            const container = document.getElementById('created-exams-list');
+            if (!container) return;
+            document.getElementById('exam-count-badge').innerText = `${list.length} đề`;
             if (list.length === 0) {
                 container.innerHTML = '<div class="text-gray-400 italic text-center py-3">Chưa có đề nào trên hệ thống.</div>';
                 return;
             }
             container.innerHTML = list.map(e => `
-                <div class="bg-pink-50/50 p-2.5 rounded-xl border border-pink-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hover:bg-pink-50 transition">
+                <div class="bg-pink-50/50 p-2.5 rounded-xl border border-pink-100 flex justify-between items-center gap-2">
                     <div class="overflow-hidden">
                         <div class="font-bold text-pink-700 truncate">${e.examTitle}</div>
-                        <div class="text-[10px] text-gray-500">Lớp: <b class="text-gray-700">${e.className}</b> \vert{} Ngày: ${e.examDate}</div>
+                        <div class="text-[10px] text-gray-500">Lớp: <b class="text-gray-700">${e.className}</b> | Ngày: ${e.examDate}</div>
                     </div>
-                    <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
-                        <button type="button" onclick="viewExamDetail('${e.id}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-lg text-[10px] border border-blue-200 transition">
-                            👁️ Xem
-                        </button>
-                        <button type="button" onclick="loadExamForEdit('${e.id}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg text-[10px] border border-amber-200 transition">
-                            ✏️ Sửa
-                        </button>
-                        <button type="button" onclick="deleteExamDirectly('${e.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg text-[10px] border border-rose-200 transition">
-                            🗑️ Xóa
-                        </button>
-                    </div>
+                    <button type="button" onclick="deleteExamDirectly('${e.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg text-[10px] border border-rose-200">
+                        Xóa
+                    </button>
                 </div>
             `).join('');
         }
 
-        function viewExamDetail(examId) {
-            const exam = (localStore.exams || []).find(x => x.id === examId);
-            if (!exam) return;
-
-            document.getElementById('modal-exam-title').innerText = exam.examTitle;
-            document.getElementById('modal-exam-class').innerText = 'Lớp ' + exam.className;
-            document.getElementById('modal-exam-date').innerText = exam.examDate;
-            document.getElementById('modal-exam-content').innerText = exam.examContent;
-            document.getElementById('modal-exam-rubric').innerText = exam.examRubric || "Chưa có barem chấm.";
-
-            document.getElementById('modal-view-exam').classList.remove('hidden');
-        }
-
-        function closeExamModal() {
-            document.getElementById('modal-view-exam').classList.add('hidden');
-        }
-
-        function loadExamForEdit(examId) {
-            const exam = (localStore.exams || []).find(x => x.id === examId);
-            if (!exam) return;
-
-            document.getElementById('editing-exam-id').value = exam.id;
-            document.getElementById('exam-class').value = exam.className;
-            document.getElementById('exam-date').value = exam.examDate;
-            document.getElementById('exam-title').value = exam.examTitle;
-            document.getElementById('exam-content').value = exam.examContent;
-            document.getElementById('exam-rubric').value = exam.examRubric || '';
-
-            document.getElementById('btn-save-exam-text').innerText = "Cập Nhật Lại Đề Kiểm Tra";
-            document.getElementById('btn-save-exam-icon').innerText = "💾";
-            showToast("Đã tải đề vào khung soạn thảo để chỉnh sửa!");
-        }
-
         function deleteExamDirectly(examId) {
-            const exam = (localStore.exams || []).find(x => x.id === examId);
-            const title = exam ? exam.examTitle : "đề kiểm tra này";
+            if (confirm("Thầy/Cô có chắc chắn muốn xóa đề này không?")) {
+                localStore.exams = (localStore.exams || []).filter(x => x.id !== examId);
+                localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams));
+                renderCreatedExamsTable();
+                showToast("Đã xóa đề thành công!");
+            }
+        }
 
-            if (confirm(`Thầy/Cô có chắc chắn muốn xóa "${title}" không?`)) { localStore.exams = (localStore.exams \vert{}\vert{} []).filter(x => x.id !== examId); localStorage.setItem('kiemtra_exams', JSON.stringify(localStore.exams)); renderCreatedExamsTable();  if (document.getElementById('editing-exam-id').value === examId) { clearExamForm(); }  pubnub.publish({ channel: REALTIME_CHANNEL, message: { type: "DELETE_EXAM", payload: examId } });  showToast("Đã xóa đề kiểm tra thành công!"); } }  function clearExamForm() { document.getElementById('editing-exam-id').value = ''; document.getElementById('exam-class').value = ''; document.getElementById('exam-date').value = ''; document.getElementById('exam-title').value = ''; document.getElementById('exam-content').value = ''; document.getElementById('exam-rubric').value = ''; document.getElementById('btn-save-exam-text').innerText = "Lưu Đề & Truyền Đến Máy Học Sinh"; document.getElementById('btn-save-exam-icon').innerText = "📡"; }  function renderTeacherSubmissionsList() { const list = localStore.submissions \vert{}\vert{} []; const container = document.getElementById('submissions-list-container'); document.getElementById('submission-count-badge').innerText = `${list.length} bài`;
+        function clearExamForm() {
+            document.getElementById('editing-exam-id').value = '';
+            document.getElementById('exam-class').value = '';
+            document.getElementById('exam-date').value = '';
+            document.getElementById('exam-title').value = '';
+            document.getElementById('exam-content').value = '';
+            document.getElementById('exam-rubric').value = '';
+        }
+
+        function renderTeacherSubmissionsList() {
+            const list = localStore.submissions || [];
+            const container = document.getElementById('submissions-list-container');
+            if (!container) return;
+            document.getElementById('submission-count-badge').innerText = `${list.length} bài`;
             if (list.length === 0) {
                 container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Chưa có bài thi nào được nộp.</div>';
                 return;
             }
             container.innerHTML = list.map(s => `
-                <div class="border border-pink-100 rounded-xl p-2.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hover:bg-pink-50/40 transition">
+                <div class="border border-pink-100 rounded-xl p-2.5 flex justify-between items-center gap-2">
                     <div>
                         <div class="font-bold text-gray-800">${s.studentName} <span class="text-[10px] font-bold ${s.status === 'Đã duyệt' ? 'text-green-600' : 'text-amber-600'}">(${s.status})</span></div>
-                        <div class="text-[10px] text-gray-500">Lớp: <b>${s.className}</b> | Đề: <b>${s.examTitle}</b> \vert{} Điểm: <b>${s.score}</b></div>
+                        <div class="text-[10px] text-gray-500">Lớp: <b>${s.className}</b> | Đề: <b>${s.examTitle}</b> | Điểm: <b>${s.score}</b></div>
                     </div>
-                    <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
-                        <button type="button" onclick="openGradingItem('${s.id}')" class="px-3 py-1 bg-pink-500 hover:bg-pink-600 text-white rounded-lg text-xs font-bold transition">
-                            Chấm
-                        </button>
-                        <button type="button" onclick="deleteStudentSubmission('${s.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg text-xs border border-rose-200 transition" title="Xóa bài làm này">
-                            🗑️ Xóa bài
-                        </button>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" onclick="openGradingItem('${s.id}')" class="px-3 py-1 bg-pink-500 hover:bg-pink-600 text-white rounded-lg text-xs font-bold">Chấm</button>
+                        <button type="button" onclick="deleteStudentSubmission('${s.id}')" class="px-2 py-1 bg-rose-50 text-rose-700 text-xs font-bold rounded-lg border border-rose-200">Xóa</button>
                     </div>
                 </div>
             `).join('');
         }
 
         function deleteStudentSubmission(subId) {
-            const sub = (localStore.submissions || []).find(s => s.id === subId);
-            const studentName = sub ? sub.studentName : "học sinh này";
-
-            if (confirm(`Thầy/Cô có chắc chắn muốn xóa bài nộp của ${studentName} không?`)) { localStore.submissions = (localStore.submissions \vert{}\vert{} []).filter(s => s.id !== subId); localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions)); renderTeacherSubmissionsList();  if (activeGradingId === subId) { closeGradingWorkspace(); }  pubnub.publish({ channel: REALTIME_CHANNEL, message: { type: "DELETE_SUBMISSION", payload: subId } });  showToast(`Đã xóa bài của ${studentName} thành công!`);
+            if (confirm("Thầy/Cô có muốn xóa bài làm này?")) {
+                localStore.submissions = (localStore.submissions || []).filter(s => s.id !== subId);
+                localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
+                renderTeacherSubmissionsList();
+                if (activeGradingId === subId) closeGradingWorkspace();
+                showToast("Đã xóa bài nộp!");
             }
         }
 
@@ -723,8 +591,9 @@
             if (!sub) return;
 
             document.getElementById('grading-workspace').classList.remove('hidden');
-            document.getElementById('grading-student-heading').innerText = `Học sinh: ${sub.studentName} (Lớp ${sub.className})`; document.getElementById('grading-exam-heading').innerText = `Đề: ${sub.examTitle}`;
-            document.getElementById('grading-student-transcript').innerText = sub.answer || "(Học sinh chưa có câu trả lời)";
+            document.getElementById('grading-student-heading').innerText = `Học sinh: ${sub.studentName} (Lớp ${sub.className})`;
+            document.getElementById('grading-exam-heading').innerText = `Đề: ${sub.examTitle}`;
+            document.getElementById('grading-student-transcript').innerText = sub.answer || "(Chưa có câu trả lời)";
             document.getElementById('grading-exam-rubric-view').innerText = sub.examRubric || "(Chưa thiết lập barem)";
 
             const g = document.getElementById('grading-photos-gallery');
@@ -744,7 +613,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM VÀ NHẬN XÉT
+        // AI CHẤM VÀ NHẬN XÉT: MODEL GEMINI FLASH CHUẨN XÁC
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -759,8 +628,8 @@
             const examQuestion = sub.examTitle || 'Kiểm tra bài cũ';
 
             if (!studentAnswer) {
-                document.getElementById('grading-score-field').value = '0';
-                document.getElementById('grading-comment-field').value = `Chào ${studentName}, cô/thầy chưa ghi nhận được câu trả lời của em trong bài kiểm tra này. Em hãy chú ý ôn tập kỹ lưỡng và chuẩn bị tốt hơn ở lần kiểm tra sau nhé!`;
+                document.getElementById('grading-score-field').value = '0/10';
+                document.getElementById('grading-comment-field').value = `Chào ${studentName}, Cô chưa ghi nhận được câu trả lời của em trong bài kiểm tra này. Em hãy chú ý ôn tập kỹ lưỡng và chuẩn bị tốt hơn ở lần kiểm tra sau nhé!`;
                 showToast("Học sinh chưa có câu trả lời!");
                 return;
             }
@@ -780,10 +649,10 @@
             }
 
             const btn = document.getElementById('btn-ai-grader');
-            btn.innerHTML = `<span class="animate-spin">🔄</span> Gemini đang đọc Barem và chấm bài...`;
+            btn.innerHTML = `<span class="animate-spin">🔄</span> Cô đang chấm bài theo barem...`;
             btn.disabled = true;
 
-            const promptText = `Bạn là một giáo viên có tâm, giàu kinh nghiệm sư phạm, ngôn từ ấm áp, gần gũi, xưng "thầy/cô" và gọi học sinh là "em".
+            const promptText = `Bạn là một giáo viên có tâm, giàu kinh nghiệm sư phạm, xưng "Cô" và gọi học sinh là "em".
 
 THÔNG TIN BÀI KIỂM TRA:
 - Đề bài: ${examQuestion}
@@ -795,83 +664,67 @@ THÔNG TIN BÀI KIỂM TRA:
 ${rubricContent || "Đánh giá mức độ hiểu bài và nắm vững kiến thức theo thang điểm 10."}
 """
 
-NGUYÊN TẮC:
-1. Tuân thủ barem về thang điểm và yêu cầu nhận xét.
-2. Học sinh nói qua micro nên hiểu bản chất ý đúng.
-3. Nhận xét chân thật, xưng hô tự nhiên (thầy/cô - em), khen ngợi cụ thể và dặn dò ân cần.
+NGUYÊN TẮC BẮT BUỘC:
+1. Luôn chấm trên thang điểm 10 cho kiến thức đúng trọng tâm theo barem.
+2. Học sinh nói qua micro nên hiểu bản chất ý đúng thay vì bắt bẻ từng từ ngữ.
+3. Lời nhận xét xưng "Cô", gọi "em", dặn dò ân cần, khen ngợi cụ thể điểm mạnh và nhắc nhở điểm cần bổ sung.
 
-TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`json, không có text ngoài):
-{"score": "Điểm số ví dụ 8.5/10", "comment": "Lời nhận xét chi tiết"}`;
+TRẢ VỀ DUY NHẤT MỘT CHUỖI JSON HỢP LỆ (không dùng markdown \`\`\`json):
+{"score": "Điền điểm số (ví dụ 8.5/10)", "comment": "Lời nhận xét chi tiết của Cô"}`;
 
             try {
-                const targetModel = "gemini-2.5-flash";
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
+                // Thử lần lượt các endpoint model flash phổ biến
+                const models = ["gemini-2.5-flash", "gemini-1.5-flash"];
+                let response = null;
+                let usedModel = "";
 
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 25000);
-
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    signal: controller.signal,
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptText }] }],
-                        generationConfig: {
-                            temperature: 0.35,
-                            responseMimeType: "application/json"
+                for (let m of models) {
+                    try {
+                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
+                        const res = await fetch(url, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: promptText }] }],
+                                generationConfig: {
+                                    temperature: 0.3,
+                                    responseMimeType: "application/json"
+                                }
+                            })
+                        });
+                        if (res.ok) {
+                            response = res;
+                            usedModel = m;
+                            break;
                         }
-                    })
-                });
+                    } catch(e) {}
+                }
 
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    const code = response.status;
-                    const msg = errData?.error?.message || "";
-
-                    if (code === 429) {
-                        throw new Error("LỖI QUÁ TẢI (429): Bạn đã gọi AI quá nhiều lần. Vui lòng chờ 1-2 phút rồi bấm lại!");
-                    } else if (code === 400 || code === 403 || code === 404) {
-                        localStorage.removeItem('gemini_api_key_stored');
-                        throw new Error("Lỗi xác thực hoặc tên model không hợp lệ: " + msg);
-                    } else {
-                        throw new Error(`Mã lỗi ${code}: ${msg}`);
-                    }
+                if (!response || !response.ok) {
+                    throw new Error("Không thể kết nối đến máy chủ AI hoặc API Key không hợp lệ. Vui lòng kiểm tra lại Key!");
                 }
 
                 const data = await response.json();
                 const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-                let cleanJson = rawOutput.trim();
-                if (cleanJson.startsWith("```json")) cleanJson = cleanJson.replace(/^```json/i, '');
-                if (cleanJson.startsWith("```")) cleanJson = cleanJson.replace(/^```/, '');
-                if (cleanJson.endsWith("```")) cleanJson = cleanJson.slice(0, -3);
-                cleanJson = cleanJson.trim();
-
+                let cleanJson = rawOutput.replace(/```json/gi, '').replace(/```/g, '').trim();
                 const result = JSON.parse(cleanJson);
 
                 if (result.score !== undefined && result.comment) {
                     document.getElementById('grading-score-field').value = result.score;
                     document.getElementById('grading-comment-field').value = result.comment;
-                    showToast("Gemini AI đã hoàn thành chấm bài!");
+                    showToast("AI đã hoàn thành chấm bài!");
                 } else {
-                    throw new Error("Dữ liệu phản hồi thiếu trường score hoặc comment.");
+                    throw new Error("Dữ liệu phản hồi thiếu trường điểm hoặc nhận xét.");
                 }
             } catch (error) {
-                console.error("Chi tiết lỗi chấm bài:", error);
-                if (error.name === 'AbortError') {
-                    alert("Kết nối quá thời gian chờ (hơn 25s). Vui lòng thử lại.");
-                } else {
-                    alert(error.message || "Đã xảy ra lỗi trong quá trình chấm bài.");
-                }
+                console.error("AI grading error:", error);
+                alert(error.message || "Lỗi khi chấm bài!");
             } finally {
-                btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem`;
+                btn.innerHTML = `<span>🤖</span> AI Chấm & Nhận Xét Theo Đúng Barem Thang 10`;
                 btn.disabled = false;
             }
         }
 
-        // --- DUYỆT ĐIỂM: GỬI GÓI TIN SIÊU NHỆ ĐỂ HỌC SINH NHẬN NGAY LẬP TỨC ---
         function saveAndBroadcastGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
             if (!sub) return;
@@ -881,26 +734,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
             sub.status = 'Đã duyệt';
 
             localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
-
-            const lightGradeData = {
-                id: sub.id,
-                studentName: sub.studentName,
-                className: sub.className,
-                examTitle: sub.examTitle,
-                score: sub.score,
-                status: sub.status,
-                comment: sub.comment
-            };
-
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "UPDATE_GRADE", payload: lightGradeData }
-            }, function(status) {
-                if (!status.error) {
-                    showToast("Đã gửi kết quả thành công về máy học sinh!");
-                }
-            });
-
+            showToast("Đã lưu kết quả duyệt bài!");
             closeGradingWorkspace();
             renderTeacherSubmissionsList();
         }
@@ -919,7 +753,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "KetQua");
             XLSX.writeFile(wb, `Ket_Qua_${Date.now()}.xlsx`);
-            showToast("Đã xuất file Excel chuẩn chính quy!");
+            showToast("Đã xuất file Excel thành công!");
         }
 
         // --- HỌC SINH ---
@@ -934,11 +768,6 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
             currentStudent = { name, className };
             document.getElementById('student-card-name').innerText = `Học sinh: ${name}`;
             document.getElementById('student-card-class').innerText = `Lớp: ${className}`;
-            
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "REQUEST_SYNC" }
-            });
 
             navigateTo('screen-student-dashboard');
         }
@@ -977,7 +806,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
                         <div class="font-bold text-gray-800 text-xs sm:text-sm">${e.examTitle}</div>
                         <div class="text-[10px] text-gray-500">Lớp: ${e.className} | Ngày: ${e.examDate}</div>
                     </div>
-                    <button type="button" onclick="enterExamRoom('${e.id}')" class="px-3.5 py-1.5 bg-rose-500 text-white font-bold rounded-xl text-xs shadow">Vào làm bài</button>
+                    <button type="button" onclick="enterExamRoom('${e.id}')" class="px-3.5 py-1.5 bg-rose-500 text-white font-bold rounded-xl text-xs shadow cursor-pointer">Vào làm bài</button>
                 </div>
             `).join('');
         }
@@ -1000,8 +829,6 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
             const v = document.getElementById('webcam-video-element');
             v.muted = true;
             v.playsInline = true;
-            v.setAttribute('playsinline', '');
-            v.setAttribute('webkit-playsinline', '');
 
             try {
                 if (!globalRealStream || !globalRealStream.active) {
@@ -1011,9 +838,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
                     });
                 }
                 v.srcObject = globalRealStream;
-                v.onloadedmetadata = () => {
-                    v.play().catch(err => console.warn("Video play:", err));
-                };
+                v.play().catch(() => {});
 
                 timer1 = setTimeout(() => captureSnap(1), 2500);
                 timer2 = setTimeout(() => captureSnap(2), 6500);
@@ -1035,7 +860,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
             
             const compressedPhoto = c.toDataURL('image/jpeg', 0.25);
             currentSnapshots.push(compressedPhoto);
-            document.getElementById('snapshot-status-tag').innerText = `📸 Ảnh giám sát: ${currentSnapshots.length}/2`;
+            document.getElementById('snapshot-status-tag').innerText = `📸 Ảnh: ${currentSnapshots.length}/2`;
         }
 
         function toggleSpeech() {
@@ -1050,11 +875,9 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
         }
 
         function startSpeechEngine() {
-            if (!isMicActive) return;
-
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRec) {
-                showToast("Trình duyệt chưa hỗ trợ giọng nói! Hãy mở bằng Chrome hoặc Safari.");
+                showToast("Trình duyệt không hỗ trợ nhận diện giọng nói. Hãy dùng Google Chrome!");
                 isMicActive = false;
                 updateMicButtonUI();
                 return;
@@ -1069,7 +892,6 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
                 globalSpeech.lang = 'vi-VN';
                 globalSpeech.continuous = true;
                 globalSpeech.interimResults = true;
-                globalSpeech.maxAlternatives = 1;
 
                 globalSpeech.onresult = (event) => {
                     let currentInterim = '';
@@ -1081,20 +903,15 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
                             currentInterim += transcriptPiece;
                         }
                     }
-                    
                     const box = document.getElementById('student-speech-result-box');
                     if (box) {
-                        const totalText = (accumulatedFinalText + currentInterim).trim();
-                        if (totalText) {
-                            box.value = totalText;
-                        }
+                        box.value = (accumulatedFinalText + currentInterim).trim();
                     }
                 };
 
                 globalSpeech.onerror = (event) => {
-                    console.warn("Speech recognition error:", event.error);
                     if (event.error === 'not-allowed') {
-                        showToast("Vui lòng cho phép quyền Micro trên trình duyệt!");
+                        showToast("Vui lòng cấp quyền Micro trên trình duyệt!");
                         stopSpeechEngine();
                     }
                 };
@@ -1103,15 +920,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
                     if (isMicActive) {
                         setTimeout(() => {
                             if (isMicActive) {
-                                try {
-                                    globalSpeech.start();
-                                } catch(e) {
-                                    setTimeout(() => {
-                                        if (isMicActive) {
-                                            try { globalSpeech.start(); } catch(err){}
-                                        }
-                                    }, 400);
-                                }
+                                try { globalSpeech.start(); } catch(e){}
                             }
                         }, 250);
                     }
@@ -1120,36 +929,29 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
                 globalSpeech.start();
             } catch(err) {
                 console.error("Lỗi khởi chạy mic:", err);
-                setTimeout(() => {
-                    if (isMicActive) {
-                        try { globalSpeech.start(); } catch(e){}
-                    }
-                }, 300);
             }
         }
 
         function stopSpeechEngine() {
             isMicActive = false;
             if (globalSpeech) {
-                try {
-                    globalSpeech.stop();
-                } catch(e){}
+                try { globalSpeech.stop(); } catch(e){}
             }
             updateMicButtonUI();
-            showToast("Đã dừng thu âm!");
         }
 
         function updateMicButtonUI() {
             const btn = document.getElementById('btn-toggle-mic');
             const icon = document.getElementById('mic-icon');
             const txt = document.getElementById('mic-btn-text');
+            if (!btn) return;
 
             if (isMicActive) {
-                btn.className = "w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 animate-pulse";
+                btn.className = "w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 animate-pulse cursor-pointer";
                 icon.innerText = "🛑";
                 txt.innerText = "ĐANG THU ÂM... (BẤM ĐỂ DỪNG NÓI)";
             } else {
-                btn.className = "w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2";
+                btn.className = "w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer";
                 icon.innerText = "🎙️";
                 txt.innerText = "Bấm vào đây để BẬT MICRO nói";
             }
@@ -1158,7 +960,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
         function clearSpeechText() {
             accumulatedFinalText = "";
             document.getElementById('student-speech-result-box').value = '';
-            showToast("Đã xóa nội dung. Hãy bật micro để nói lại!");
+            showToast("Đã xóa câu trả lời!");
         }
 
         function stopHardware() {
@@ -1170,12 +972,11 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
         function submitStudentExamAction() {
             const ans = document.getElementById('student-speech-result-box').value.trim();
             if (!ans) {
-                showToast("Bạn chưa có câu trả lời bằng giọng nói!");
+                showToast("Em chưa có câu trả lời bằng giọng nói!");
                 return;
             }
 
             stopSpeechEngine();
-
             const now = new Date();
             const subId = 'sub_' + Date.now();
             const sub = {
@@ -1195,20 +996,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
             localStore.submissions = [sub, ...localStore.submissions.filter(s => s.id !== subId)];
             localStorage.setItem('kiemtra_subs', JSON.stringify(localStore.submissions));
 
-            pubnub.publish({
-                channel: REALTIME_CHANNEL,
-                message: { type: "NEW_SUBMISSION", payload: sub }
-            }, function(status, response) {
-                if (status.error) {
-                    sub.snapshots = [];
-                    pubnub.publish({
-                        channel: REALTIME_CHANNEL,
-                        message: { type: "NEW_SUBMISSION", payload: sub }
-                    });
-                }
-                showToast("Đã nộp bài thành công về máy giáo viên!");
-            });
-
+            showToast("Nộp bài thành công!");
             navigateTo('screen-student-dashboard');
         }
 
@@ -1220,10 +1008,11 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
         function renderStudentPersonalResults() {
             if (!currentStudent) return;
             const container = document.getElementById('student-results-cards-container');
+            if (!container) return;
             const list = (localStore.submissions || []).filter(s => s.studentName.toLowerCase() === currentStudent.name.toLowerCase());
 
             if (list.length === 0) {
-                container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Bạn chưa nộp bài thi nào.</div>';
+                container.innerHTML = '<div class="text-gray-400 italic text-center py-4">Em chưa nộp bài thi nào.</div>';
                 return;
             }
 
@@ -1234,7 +1023,7 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không chứa markdown \`\`\`j
                         <span class="text-xs px-2 py-0.5 rounded-full ${s.status === 'Đã duyệt' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span>
                     </div>
                     <div class="text-xs text-gray-700">Điểm số: <b class="text-pink-600 text-sm font-extrabold">${s.score}</b></div>
-                    <div class="text-xs text-gray-600 bg-pink-50/50 p-2.5 rounded-lg border border-pink-100 whitespace-pre-wrap leading-relaxed">${s.comment || 'Đang chờ giáo viên duyệt...'}</div>
+                    <div class="text-xs text-gray-600 bg-pink-50/50 p-2.5 rounded-lg border border-pink-100 whitespace-pre-wrap leading-relaxed">${s.comment || 'Đang chờ Cô chấm điểm...'}</div>
                 </div>
             `).join('');
         }
