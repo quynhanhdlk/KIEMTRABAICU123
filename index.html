@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Voicecheck AI - Kiểm Tra Bài Cũ </title>
+    <title>Hệ Thống Kiểm Tra Bài Cũ Thông Minh</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS (xlsx) -->
@@ -631,7 +631,6 @@
             safePubNubPublish({ type: "NEW_EXAM", payload: examObj });
         }
 
-        // --- HIỂN THỊ ĐỦ 3 NÚT: XEM - SỬA - XÓA ---
         function renderCreatedExamsTable() {
             const list = localStore.exams || [];
             const container = document.getElementById('created-exams-list');
@@ -662,7 +661,6 @@
             `).join('');
         }
 
-        // --- XEM CHI TIẾT ĐỀ (POPUP) ---
         function viewExamDetail(examId) {
             const exam = (localStore.exams || []).find(x => x.id === examId);
             if (!exam) return;
@@ -680,7 +678,6 @@
             document.getElementById('modal-view-exam').classList.add('hidden');
         }
 
-        // --- NẠP LẠI ĐỀ VÀO FORM ĐỂ CHỈNH SỬA ---
         function loadExamForEdit(examId) {
             const exam = (localStore.exams || []).find(x => x.id === examId);
             if (!exam) return;
@@ -799,7 +796,7 @@
         }
 
         // =========================================================================
-        // AI CHẤM BÀI: TỰ ĐỘNG DÒ TÌM MODEL KHẢ DỤNG QUA LISTMODELS (CHỐNG LỖI 404)
+        // AI CHẤM BÀI: SỬ DỤNG TRỰC TIẾP MODEL GEMINI-3.8-FLASH CHUẨN XÁC
         // =========================================================================
         async function triggerAIGrading() {
             const sub = localStore.submissions.find(s => s.id === activeGradingId);
@@ -858,34 +855,10 @@ TRẢ VỀ DUY NHẤT một chuỗi JSON chuẩn (không dùng markdown \`\`\`js
 {"score": "Điền điểm số (ví dụ 8.5/10)", "comment": "Lời nhận xét chi tiết của Cô"}`;
 
             try {
-                // 1. Tự động lấy danh sách model khả dụng từ chính Google cấp cho Key này
-                let chosenModel = "";
-                try {
-                    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-                    if (listRes.ok) {
-                        const listData = await listRes.json();
-                        const models = listData.models || [];
-                        const validModels = models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
-                        const flashModel = validModels.find(m => m.name.toLowerCase().includes("flash"));
-                        if (flashModel) {
-                            chosenModel = flashModel.name;
-                        } else if (validModels.length > 0) {
-                            chosenModel = validModels[0].name;
-                        }
-                    }
-                } catch(e) {
-                    console.warn("Lỗi gọi listModels:", e);
-                }
-
-                if (!chosenModel) {
-                    chosenModel = "models/gemini-2.0-flash";
-                }
-                if (!chosenModel.startsWith("models/")) {
-                    chosenModel = "models/" + chosenModel;
-                }
-
-                // 2. Gửi yêu cầu chấm bài
+                // Sử dụng model mới nhất theo đúng khuyến nghị của Google: gemini-3.8-flash
+                const chosenModel = "models/gemini-3.8-flash";
                 const url = `https://generativelanguage.googleapis.com/v1beta/${chosenModel}:generateContent?key=${apiKey}`;
+                
                 const res = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
