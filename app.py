@@ -20,18 +20,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 1. Trích xuất API Key từ requirements.txt hoặc st.secrets
 api_key = ""
-if os.path.exists("requirements.txt"):
-    try:
-        with open("requirements.txt", "r", encoding="utf-8") as rf:
-            content = rf.read()
-            match = re.search(r'AIzaSy[A-Za-z0-9_-]{33}', content)
-            if match:
-                api_key = match.group(0)
-    except Exception as e:
-        print("Lỗi đọc requirements.txt:", e)
 
+# 1. Đọc từ requirements.txt hoặc requirement.txt
+for fname in ["requirements.txt", "requirement.txt"]:
+    if os.path.exists(fname):
+        try:
+            with open(fname, "r", encoding="utf-8") as rf:
+                content = rf.read()
+                match = re.search(r'AIzaSy[A-Za-z0-9_-]{33}', content)
+                if match:
+                    api_key = match.group(0)
+                    break
+        except Exception as e:
+            pass
+
+# 2. Đọc từ Streamlit Secrets
 if not api_key:
     try:
         if "GEMINI_API_KEY" in st.secrets:
@@ -39,10 +43,10 @@ if not api_key:
     except Exception:
         pass
 
+# 3. Đọc từ Biến môi trường
 if not api_key:
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
 
-# 2. Đọc file index.html và render
 try:
     with open("index.html", "r", encoding="utf-8") as f:
         html_code = f.read()
@@ -50,4 +54,4 @@ try:
     html_code = html_code.replace("{{GEMINI_API_KEY}}", api_key)
     components.html(html_code, height=980, scrolling=True)
 except FileNotFoundError:
-    st.error("Không tìm thấy tệp index.html trong thư mục ứng dụng!")
+    st.error("Không tìm thấy tệp index.html trong repository!")
